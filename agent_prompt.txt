@@ -8,7 +8,7 @@ You have full access to the local file system and command-line execution.
 * **Target Files to Optimize**: `classify_prompt_v1.txt` and `classify_prompt_v2.txt`
 * **History Directory**: `B:\git\graph-prompt\history\` (Create this if it does not exist)
 * **Iteration Log**: `B:\git\graph-prompt\iteration_history.txt`
-* **Execution Command**: `& F:\conda_envs\reasonRerank_data_fix\python.exe b:/git/graph-prompt/main.py`
+* **Execution Command**: `& F:\conda_envs\reasonRerank_data_fix\python.exe B:/git/graph-prompt/main.py`
 
 ### Domain Knowledge (Crucial for Evaluation)
 

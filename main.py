@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import random
+import re
 from datetime import datetime
 from openai import AsyncOpenAI
 
@@ -16,72 +17,118 @@ CONCURRENCY_LIMIT = 5       # 并发数
 
 # 要测试的初始 Prompt 文件列表
 PROMPT_FILES = ["classify_prompt_v1.txt", "classify_prompt_v2.txt"]
-# ==========================================
+
+# ================= 新增：计费与 Token 配置 =================
+PRICE_PER_1K_INPUT = 0.04   # Qwen-max 输入价格：人民币/千tokens (可根据官方实际价格调整)
+PRICE_PER_1K_OUTPUT = 0.12  # Qwen-max 输出价格：人民币/千tokens
+COST_HISTORY_FILE = "token_cost_history.json" # 保存历史消耗的文件名
+# =======================================================
 
 client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL)
 semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
 write_lock = asyncio.Lock()  
+cost_lock = asyncio.Lock()  # 新增：用于安全写入计费文件的锁
 
 def read_prompt(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
 
+async def update_cost_history(usage):
+    """累加并保存 Token 消耗和人民币成本到本地文件，避免丢失"""
+    if not usage:
+        return
+        
+    input_tokens = usage.prompt_tokens
+    output_tokens = usage.completion_tokens
+    cost_rmb = (input_tokens / 1000) * PRICE_PER_1K_INPUT + (output_tokens / 1000) * PRICE_PER_1K_OUTPUT
+    
+    async with cost_lock:
+        history = {"total_input_tokens": 0, "total_output_tokens": 0, "total_cost_rmb": 0.0}
+        
+        # 尝试读取历史数据
+        if os.path.exists(COST_HISTORY_FILE):
+            try:
+                with open(COST_HISTORY_FILE, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+            except Exception:
+                pass
+                
+        # 累加当前消耗
+        history["total_input_tokens"] += input_tokens
+        history["total_output_tokens"] += output_tokens
+        history["total_cost_rmb"] += cost_rmb
+        
+        # 写回文件
+        with open(COST_HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=4, ensure_ascii=False)
+
+def extract_tag_content(text, tag_name):
+    """使用正则表达式提取指定标签中的内容"""
+    pattern = f"<{tag_name}>(.*?)</{tag_name}>"
+    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+    return match.group(1).strip() if match else ""
+
 async def call_llm(system_prompt, user_content):
-    """并发控制的 LLM 调用"""
-    
-    # 修复 API 400 报错：强制要求 prompt 中包含 "json" 关键字
-    safe_system_prompt = system_prompt + "\n\nNote: You must output strictly in JSON format."
-    
+    """并发控制的 LLM 调用，修改为返回内容及 usage 字典"""
     async with semaphore:
         try:
             response = await client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[
-                    {"role": "system", "content": safe_system_prompt},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_content}
                 ],
                 temperature=0.3
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content, response.usage
         except Exception as e:
             print(f"LLM Call Error: {e}")
-            return None
+            return None, None
 
 async def process_sample(sample, prompt_template, prompt_dir, prompt_name):
     """处理单条数据，并在生成后写入对应的 Prompt 子文件夹中"""
     query = sample.get("query", "")
     
-    result_str = await call_llm(system_prompt=prompt_template, user_content=query)
+    # 获取 LLM 回复和 Token 消耗
+    result_str, usage = await call_llm(system_prompt=prompt_template, user_content=query)
+    
+    # 记录 Token 和计费消耗
+    if usage:
+        await update_cost_history(usage)
     
     merged_data = dict(sample)
     # 在数据中显式记录使用了哪个 prompt
     merged_data["used_prompt"] = prompt_name 
     
     if result_str:
+        # Try JSON parsing first (new format), fall back to tag extraction (old format)
         try:
-            # Strip markdown code blocks if present
-            cleaned = result_str.strip()
-            if cleaned.startswith("```json"):
-                cleaned = cleaned[7:]
-            elif cleaned.startswith("```"):
-                cleaned = cleaned[3:]
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
-            cleaned = cleaned.strip()
+            import json as json_lib
+            json_data = json_lib.loads(result_str.strip())
+            if "reasoning" in json_data and "category" in json_data:
+                merged_data["query_intent_analysis"] = ""
+                merged_data["logical_graph_construction"] = ""
+                merged_data["topology_reasoning"] = json_data.get("reasoning", "")
+                merged_data["classification_result"] = "[" + json_data.get("category", "") + "]"
+                merged_data["parse_status"] = "Success"
+            else:
+                raise ValueError("Missing required JSON keys")
+        except:
+            # Fall back to tag extraction
+            merged_data["query_intent_analysis"] = extract_tag_content(result_str, "query_intent_analysis")
+            merged_data["logical_graph_construction"] = extract_tag_content(result_str, "logical_graph_construction")
+            merged_data["topology_reasoning"] = extract_tag_content(result_str, "topology_reasoning")
+            merged_data["classification_result"] = extract_tag_content(result_str, "classification_result")
             
-            llm_json = json.loads(cleaned)
-            merged_data["llm_reasoning"] = llm_json.get("reasoning", "")
-            merged_data["llm_category"] = llm_json.get("category", "")
-        except json.JSONDecodeError:
-            merged_data["llm_reasoning"] = "Parse Error"
-            merged_data["llm_category"] = "Parse Error"
-            merged_data["raw_llm_response"] = result_str
+            if not any([merged_data["query_intent_analysis"], merged_data["logical_graph_construction"], merged_data["topology_reasoning"], merged_data["classification_result"]]):
+                merged_data["parse_status"] = "Tag Extraction Failed"
+                merged_data["raw_llm_response"] = result_str
+            else:
+                merged_data["parse_status"] = "Success"
     else:
-        merged_data["llm_reasoning"] = "API Timeout/Error"
-        merged_data["llm_category"] = "API Timeout/Error"
+        merged_data["parse_status"] = "API Timeout/Error"
         
     # 动态确定输出文件路径
-    # 例如：保存到 results_xxx/classify_prompt_v1/bright_aops_queries.jsonl
     source_file = sample.get("source_file", "unknown_dataset.jsonl")
     output_file = os.path.join(prompt_dir, source_file)
     
@@ -123,7 +170,7 @@ def load_and_mix_datasets():
         print(f"- {filename}: 总量 {len(file_data)}, 抽样 {sample_size}")
 
     random.shuffle(all_sampled_data)
-    print(f"\n✅ 数据集混合完成，全局抽样数据总量: {len(all_sampled_data)}")
+    print(f"\n[OK] 数据集混合完成，全局抽样数据总量: {len(all_sampled_data)}")
     return all_sampled_data
 
 async def main():
@@ -140,7 +187,7 @@ async def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     main_output_dir = f"results_{timestamp}"
     os.makedirs(main_output_dir, exist_ok=True)
-    print(f"\n📁 已创建主输出文件夹: {main_output_dir}")
+    print(f"\n[DIR] 已创建主输出文件夹: {main_output_dir}")
 
     for prompt_file in PROMPT_FILES:
         prompt_name = os.path.splitext(prompt_file)[0]
@@ -157,7 +204,13 @@ async def main():
         
         await asyncio.gather(*tasks)
         
-        print(f"✅ [{prompt_file}] 跑批完成，结果已存入子文件夹: [{prompt_dir}/]")
+        print(f"[OK] [{prompt_file}] 跑批完成，结果已存入子文件夹: [{prompt_dir}/]")
+        
+    # 跑批结束后，可选打印一下当前总消耗
+    if os.path.exists(COST_HISTORY_FILE):
+        with open(COST_HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+            print(f"\n[COST] 历史总消耗: {history['total_cost_rmb']:.4f} 元")
 
 if __name__ == "__main__":
     asyncio.run(main())
