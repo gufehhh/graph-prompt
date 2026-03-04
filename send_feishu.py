@@ -8,23 +8,28 @@ report = """## 💓 Scheduled Agent Heartbeat Report
 
 ### 🎯 Evaluation Metrics (From Step 4 execution)
 
-* **`classify_prompt_v1` Accuracy / Status**: 99.2% (123/124) - 1 parse failure in bright_aops_queries.jsonl (LLM output valid JSON but parser couldn't extract category)
-* **`classify_prompt_v2` Accuracy / Status**: 100% (124/124) - Perfect parse success rate
-* **Key Error Pattern Identified**: v1 parser expects `[Category]` format but LLM outputs JSON `{"category": "Category"}`. This is a parser-prompt format mismatch, not an LLM error.
+* **`classify_prompt_v1` Accuracy / Status**: 100% (134/134) - Perfect parse success rate, improved from 99.25%
+* **`classify_prompt_v2` Accuracy / Status**: 98.5% (132/134) - 2 parse failures due to LaTeX escaping issues (\\( \\) not properly escaped in JSON)
+* **Key Error Pattern Identified**: v2 LLM outputs single backslashes in LaTeX math notation (\\(a\\)) which should be double-escaped (\\\\(a\\\\)) in JSON strings. v1 avoids this issue.
 
 ### 📝 Prompt Modifications (The "Diff")
 
-* **Why the change was made:** Previous iteration showed v2 at 100% but v1 had minor parse failures. Added stronger JSON format enforcement and explicit edge case examples.
-* **What changed in `v1`:** Added "COMMON MISTAKES TO AVOID" section, strengthened JSON format rules with WRONG/RIGHT examples, added more explicit Single vs Divergent examples
-* **What changed in `v2`:** Added "WHAT IS ALWAYS SINGLE GRAPH" section, enhanced JSON format enforcement with CORRECT/WRONG examples, kept table format but added comprehensive edge cases
+* **Why the change was made:** Previous iteration had v1 at 99.25% (1 parse failure). Added stricter JSON format enforcement with explicit rules.
+* **What changed in `v1`:** Added "ABSOLUTELY STRICT - PARSER DEPENDS ON THIS" header, 6 numbered CRITICAL FORMAT RULES, visual CORRECT/WRONG examples with annotations, single-line JSON requirement, explicit backslash escaping instruction
+* **What changed in `v2`:** Added identical format enforcement rules while maintaining table format. However, v2 still produces LaTeX with improper escaping.
 
 ### 💰 API Cost & Resource Tracking
 
 *(Read from `token_cost_history.json`)*
 
-* **Total Input Tokens**: 1,235,185
-* **Total Output Tokens**: 175,253
-* **Cumulative Cost (RMB)**: ¥ 70.44"""
+* **Total Input Tokens**: 1,583,373
+* **Total Output Tokens**: 192,205
+* **Cumulative Cost (RMB)**: ¥ 86.40
+
+### ⚠️ Notes
+
+* Git push failed due to network connectivity issues (github.com port 443 connection reset). Local commit successful (dbf1029). Manual push recommended.
+* Next iteration should add explicit LaTeX escaping examples to v2 prompt."""
 
 # Use OpenClaw message tool via subprocess
 cmd = [

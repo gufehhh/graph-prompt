@@ -110,3 +110,26 @@ For v2:
 - Explicit escaping guidance should help with math queries containing LaTeX/special chars
 
 ---
+[2026-03-04 18:46:19] Iteration Update
+
+**Failure Patterns Identified:**
+1. Edge cases in Single vs Divergent distinction could be clearer - some algorithm problems with internal conditions might be confused with scenario-based divergent queries
+2. Concurrent vs Single distinction needed more explicit dependency tests
+3. Composite Graphs category was under-specified
+
+**Changes Made to v1:**
+- Added explicit INCLUDES/EXCLUDES lists for each category
+- Added clearer decision process with numbered steps
+- Enhanced examples for Single vs Divergent distinction
+- Added "Common Mistakes to Avoid" section with more specific guidance
+- Clarified that context+question = Single Graph, not Concurrent
+
+**Changes Made to v2:**
+- Expanded table format with "Common Mistakes" column
+- Added detailed "Critical Distinctions" section with comparison tables
+- Added "Decision Checklist" for self-verification before output
+- Enhanced Single vs Divergent examples with explicit why explanations
+- Added more edge case patterns (context+question, multi-item processing)
+
+**Expected Improvement:**
+Better handling of edge cases, especially algorithm problems with internal conditions vs true divergent scenario queries.
