@@ -83,3 +83,35 @@ v2 changes:
 **Expected Impact**:
 - Better discrimination between Single and Divergent graphs for queries with implicit vs explicit conditionals
 - More consistent classification when solution methods involve case analysis but the question structure does not
+[2026-03-05 05:05:34] Iteration: Prompt Optimization Pass #5 (Scheduled Cron Run)
+
+**Previous Run Analysis (results_20260305_040639)**:
+- Parse Success Rate: ~100% for both v1 and v2 (all sampled entries showed "Success")
+- Classification Distribution: Predominantly [Single Graph] across leetcode, theoremqa, and biology datasets
+- No significant parsing errors detected
+- Both prompts successfully eliminated Divergent over-classification from earlier iterations
+
+**Identified Failure Patterns**:
+1. Current prompts may be TOO conservative - potential under-detection of true Divergent/Composite cases
+2. Need stronger emphasis on distinguishing "conditional context" from "conditional question structure"
+3. Edge case: Queries like "discuss pros AND cons" are Single (two aspects of one question), not Concurrent
+4. Need clearer guidance on when "multiple branches must ALL be evaluated" indicates Divergent vs Single
+
+**Prompt Improvements (4-Stage Tweaks)**:
+
+v1 changes:
+- <solution_space_exhaustion>: No change (CRITICAL DISTINCTION already effective)
+- <logical_supergraph_construction>: No change (structure already sound)
+- <topology_reasoning>: Added CRITICAL reminder to Divergent definition: '"If" in background context ¡Ù Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION ¡Ù Divergent.' Enhanced Decision Heuristic for clarity.
+- <classification_result>: No change (format only)
+
+v2 changes:
+- <solution_space_exhaustion>: No change (KEY INSIGHT already effective)
+- <logical_supergraph_construction>: No change (structure already sound)
+- <topology_reasoning>: Enhanced Test 2 (Divergent) with CRITICAL REMINDER block. Added new Critical Reminders bullet: 'Distinguish "discuss pros AND cons" (Single - two aspects of one question) from "answer question A AND answer question B" where A and B are unrelated (Concurrent).'
+- <classification_result>: No change (format only)
+
+**Expected Impact**:
+- Better discrimination between Single and Divergent for queries with conditional language
+- Clearer guidance on "multiple aspects of one question" vs "multiple independent questions"
+- Maintain 100% parse success while improving topological accuracy on edge cases
