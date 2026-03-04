@@ -1,27 +1,36 @@
-[2026-03-04 16:46:19] Iteration 1 - Initial Optimization
+## Iteration Log - Query Topology Prompt Optimization
+
+### Iteration 1 - 2026-03-04 17:13 (Scheduled Execution)
+
+**Evaluation Summary:**
+- Analyzed results_20260304_165415 from previous run
+- Both prompts perform reasonably on standard Single Graph queries
+- Key failure patterns identified in v2
 
 **Failure Patterns Identified:**
-1. Both classify_prompt_v1.txt and classify_prompt_v2.txt were IDENTICAL - no differentiation between versions
-2. Prompts lacked explicit decision criteria for distinguishing Single Graph (sequential multi-hop) vs Concurrent Graphs (truly independent parallel queries)
-3. Divergent Graphs definition was vague - no clear trigger words or conditional pattern examples
-4. Output format was XML-style tags instead of strict JSON as required for downstream processing
-5. No concrete examples provided for each topology category
 
-**Changes Made to v1:**
-- Added STRICT DEFINITIONS section with explicit examples for each of 5 topology types
-- Added KEY TEST heuristics (e.g., "If you removed one sub-query, would the other still make sense?")
-- Added explicit DECISION PROCESS flowchart
-- Changed output format to strict JSON: {"reasoning": "...", "category": "..."}
-- Added clear distinction guidance between Single vs Concurrent vs Divergent
+1. **JSON Parsing Failures (v2)**: Multiple entries showed "Tag Extraction Failed" even when LLM output valid JSON wrapped in markdown code blocks (```json ... ```). The prompt instructions say "No markdown" but the LLM still adds code blocks.
 
-**Changes Made to v2:**
-- Created TABLE-BASED quick reference for faster pattern matching
-- Added CRITICAL DISTINCTIONS section focusing on the most common confusion points
-- Added QUICK CLASSIFICATION FLOW (5-step decision tree)
-- Changed output format to strict JSON matching v1
-- More concise, heuristic-driven approach vs v1's example-driven approach
+2. **Divergent vs Single Confusion (v2)**: Query id=28 (Dota2 senate problem) was incorrectly classified as "Divergent Graphs". The problem describes a round-based simulation with rules, but this is a SINGLE sequential process, NOT conditional branching. The LLM confused "rules with conditions" (ak >= bk) with "divergent reasoning paths".
 
-**Expected Improvement:**
-- Better differentiation between Sequential (Single) and Parallel (Concurrent) queries
-- Clearer identification of conditional/divergent structures via trigger word detection
-- Consistent JSON output for easier downstream parsing and evaluation
+3. **Unclassifiable Misuse (v2)**: Query id=42 (Mountain Array) was marked "Unclassifiable" when it's clearly a well-defined Single Graph algorithm problem. The LLM seems to treat "find the longest X satisfying condition Y" as lacking structure.
+
+**Root Causes:**
+- v2's table format may be less effective than v1's prose definitions for complex distinctions
+- Neither prompt emphasizes strongly enough that simulation/iteration = Single Graph
+- Neither prompt clarifies that "conditions within a single algorithm" ≠ "Divergent Graphs"
+- JSON output format needs stronger enforcement (no code blocks, ever)
+
+**Planned Improvements:**
+
+For v1:
+- Add explicit examples of what is NOT Divergent (simulation loops, rule-based single processes)
+- Strengthen JSON format enforcement with negative examples
+- Add clarification that algorithm problems with constraints are always Single Graph
+
+For v2:
+- Convert back to prose format (tables may confuse the model)
+- Same improvements as v1
+- Add explicit "NOT Divergent" examples section
+
+---

@@ -7,27 +7,23 @@ You will ONLY receive the user query.
 
 1. **[Single Graph]**: A continuous, unbroken retrieval path. Even if the query requires multi-hop or sequential reasoning steps, if they form ONE connected chain from start to finish, it is Single Graph.
    - Example: "Find the capital of France, then tell me the population of that city" → Single Graph (sequential but connected)
-   - Example: Any standard algorithm problem (leetcode, math derivation, optimization) → Single Graph
-   - Example: Simulation problems with rules (game simulation, round-based procedures) → Single Graph
-   - IMPORTANT: Problems with "if conditions" INSIDE a single algorithm (e.g., "if ak >= bk, then Alice wins that round") are STILL Single Graph. This is internal logic, NOT divergent branching.
+   - Example: Any standard algorithm problem (leetcode, math derivation) → Single Graph
 
 2. **[Concurrent Graphs]**: Multiple INDEPENDENT, PARALLEL sub-queries with NO logical dependency between them. Each sub-query could be answered completely separately without knowing the answer to the others.
    - Example: "What is the capital of France? Also, what is the capital of Japan?" → Concurrent Graphs (two independent questions)
    - KEY TEST: If you removed one sub-query, would the other still make complete sense? If YES → Concurrent.
 
-3. **[Divergent Graphs]**: Contains EXPLICIT conditional branches where the reasoning path itself splits into different futures based on some condition.
+3. **[Divergent Graphs]**: Contains EXPLICIT conditional branches (if/then/else, depending on, cases where). The reasoning path splits based on some condition.
    - Example: "If the stock price is above $100, buy it; otherwise, wait" → Divergent Graphs
-   - Example: "What should I do if it rains? What if it's sunny?" → Divergent Graphs (asks for TWO different scenarios)
+   - Example: "What should I do if it rains? What if it's sunny?" → Divergent Graphs
    - KEY TRIGGER: Look for words like "if", "otherwise", "depending on", "in case", "when X vs when Y"
-   - NOT DIVERGENT: A single algorithm that uses if-statements internally (e.g., "find the maximum where x > 0") → This is Single Graph
 
 4. **[Composite Graphs]**: A complex mixture of the above types. Contains BOTH parallel independent components AND sequential/conditional logic within those components.
    - Example: "For each of these three cities, find their population and then calculate the average. Also, separately, tell me the weather in Tokyo." → Composite (has concurrent + sequential elements)
 
 5. **[Unclassifiable]**: The query is too vague, ambiguous, or lacks any discernible logical structure.
-   - NOT UNCLASSIFIABLE: Well-defined algorithm problems, even complex ones → These are Single Graph
 
-## OUTPUT FORMAT (STRICT JSON - NO EXCEPTIONS)
+## OUTPUT FORMAT (STRICT JSON)
 
 You MUST output ONLY a valid JSON object with exactly two keys:
 - "reasoning": A brief explanation of your classification decision (1-3 sentences)
@@ -36,17 +32,13 @@ You MUST output ONLY a valid JSON object with exactly two keys:
 Example output:
 {"reasoning": "This query requires sequential multi-hop reasoning but forms a single connected path from the initial state to the final answer.", "category": "Single Graph"}
 
-CRITICAL FORMAT RULES:
-- DO NOT output any text before or after the JSON
-- DO NOT use markdown code blocks (no ```json ... ```)
-- DO NOT include {query} placeholders
-- Output RAW JSON only, nothing else
+DO NOT output any text before or after the JSON. DO NOT use markdown code blocks. DO NOT include {query} placeholders.
 
 ## DECISION PROCESS
 
 1. First, check if the query has multiple distinct sub-questions
 2. If YES: Are they independent (Concurrent) or does one depend on the other (Single)?
-3. Check for conditional language (if/else/depending) → But remember: internal algorithm conditions ≠ Divergent
+3. Check for conditional language (if/else/depending) → Divergent
 4. Check for mixture of patterns → Composite
 5. If it's a single coherent question with sequential steps → Single Graph
 6. If too vague → Unclassifiable
