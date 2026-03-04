@@ -25,3 +25,35 @@
 
 **Expected Improvement:**
 Both prompts should now dramatically reduce [Divergent Graphs] over-classification by distinguishing between "how many ways to solve" vs "what is the query's logical structure". v2's decision framework should provide more consistent, testable reasoning.
+
+[2026-03-05 03:07:22] Iteration: Prompt Optimization Pass #3
+
+**Previous Run Analysis (results_20260305_020826):**
+- v1 Distribution: 132 Single (98.5%), 2 Concurrent (1.5%), 0 Divergent, 0 Composite, 0 Unclassifiable ¡ú Total: 134
+- v2 Distribution: 123 Single (91.8%), 10 Concurrent (7.5%), 0 Divergent, 1 Composite (0.7%), 0 Unclassifiable ¡ú Total: 134
+- Parse Success: v1=100%, v2=100%
+
+**Identified Failure Patterns:**
+1. Previous iteration successfully eliminated Divergent over-classification (was 89.6%/76.1%, now 0%)
+2. v1 may be TOO conservative - 98.5% Single Graph suggests potential under-detection of Concurrent/Divergent cases
+3. v2 shows better distribution diversity but still no Divergent classifications
+4. Root cause: Prompts lack clear heuristics for distinguishing "conditional context" from "conditional question structure"
+5. Example issue: Queries with "if" in background info are correctly Single, but prompts don't clearly guide when "if" indicates true Divergent structure
+
+**Changes Made to v1 (4-Stage tweaks):**
+- <solution_space_exhaustion>: No change (already clear on method diversity ¡Ù topology)
+- <logical_supergraph_construction>: No change (structure already sound)
+- <topology_reasoning>: Added Decision Heuristic section with clear bullet-point rules for each category. Enhanced Concurrent definition with explicit example. Enhanced Divergent definition to emphasize "answer depends on evaluating multiple branches".
+- <classification_result>: No change (format only)
+
+**Changes Made to v2 (4-Stage tweaks):**
+- <solution_space_exhaustion>: No change (KEY INSIGHT already effective)
+- <logical_supergraph_construction>: No change (structure already sound)
+- <topology_reasoning>: Enhanced Test 1 (Concurrent) with explicit example. Enhanced Test 2 (Divergent) to clarify "multiple branches must ALL be evaluated". Added Critical Reminders section to address common confusion points (if in context vs question, multiple aspects vs independent questions, methods vs topology).
+- <classification_result>: No change (format only)
+
+**Expected Improvement:**
+Both prompts should now better distinguish between:
+1. Conditional context (Single) vs conditional question structure (Divergent)
+2. Multiple aspects of one question (Single) vs truly independent questions (Concurrent)
+v2's explicit reminders should reduce false negatives on Divergent classification while maintaining precision on Concurrent.

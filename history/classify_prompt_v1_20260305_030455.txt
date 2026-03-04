@@ -42,16 +42,10 @@ IMPORTANT: You must CLOSE all tags.
 * Evaluate the structure of the superimposed super-graph generated in Step 2.
 * *CRITICAL*: The topology is determined by the QUERY'S logical structure, NOT by how many solution methods exist. Ask yourself:
 * [Single Graph]: Does the query ask ONE coherent question with a single logical answer path? (Even if multiple methods can solve it, if they all reach the same answer through the same logical dependency chain, it's Single Graph.)
-* [Concurrent Graphs]: Does the query ask multiple INDEPENDENT questions that have NO logical dependency on each other? (Each question forms its own disconnected graph — answering one provides ZERO help in answering the others. Example: "What is X? Also, how does Y work?" where X and Y are unrelated.)
-* [Divergent Graphs]: Does the query contain EXPLICIT conditional branching (if/then/else, case analysis, scenario-based forks) where DIFFERENT conditions lead to DIFFERENT answers OR where multiple parallel paths must ALL be evaluated to fully answer? (Key test: Does the answer depend on evaluating multiple branches/conditions?)
+* [Concurrent Graphs]: Does the query ask multiple INDEPENDENT questions that have NO logical dependency on each other? (Each question forms its own disconnected graph — answering one doesn't help answer the others.)
+* [Divergent Graphs]: Does the query contain EXPLICIT conditional branching (if/then/else, case analysis, scenario-based forks)? The same starting point must lead to DIFFERENT ending points based on conditions, OR multiple parallel paths must ALL be traversed to fully answer.
 * [Composite Graphs]: Is the logical structure a hybrid mixture (e.g., containing both concurrent disconnected components AND divergent parallel paths within those components)?
 * [Unclassifiable]: Did graph construction fail due to extreme ambiguity?
-
-* *Decision Heuristic*: 
-  - If the query has one clear question → Single Graph
-  - If the query has 2+ questions that can be answered completely independently → Concurrent Graphs
-  - If the query requires evaluating multiple conditions/cases/scenarios to produce a complete answer → Divergent Graphs
-  - If the query combines independent questions where at least one has internal branching → Composite Graphs
 
 * Briefly explain your logical deduction for choosing the specific topology. Explicitly state why you ruled out the other categories.
 </topology_reasoning>
