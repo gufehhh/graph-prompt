@@ -41,14 +41,22 @@ The prompts you are optimizing classify queries into specific topologies. When e
 
 * **Terminate Previous Processes:** Before starting a new execution, ensure no previous instances of the script are still running to prevent memory leaks or file conflicts. Execute a command to kill any hanging Python processes related to this task. For example, in PowerShell: `Get-Process python -ErrorAction SilentlyContinue | Where-Object {$_.Path -match 'reasonRerank_data_fix'} | Stop-Process -Force`.
 * Run the following exact command in your terminal to test your new prompts:
-`& F:\conda_envs\reasonRerank_data_fix\python.exe b:/git/graph-prompt/main.py`
+`& F:\conda_envs\reasonRerank_data_fix\python.exe B:/git/graph-prompt/main.py`
 * Wait for the script to finish executing.
 
-**Step 4: Iterate**
+**Step 4: Version Control (Git Sync)**
 
-* Once the script finishes, a new `results_` directory will be generated.
-* Repeat Steps 1 through 3.
+* After the pipeline finishes and the new results are generated, you must commit and push ALL updates (including the new prompts, logs, and the newly generated `results_` directories) to the remote repository.
+* Run the following commands in sequence within the `B:\git\graph-prompt\` directory:
+1. `git add .`
+2. `git commit -m "Auto-iteration update: [Insert a brief summary of the changes and the latest evaluation metrics]"`
+3. `git push`
+
+
+
+**Step 5: Iterate**
+
+* Once the Git push is successful, repeat Steps 1 through 4 for the next cycle.
 * Stop only when both prompts achieve satisfactory accuracy (e.g., >95% or as instructed) or after 5 unsuccessful iterations.
 
 Please begin by scanning the `B:\git\graph-prompt\` directory for existing results, or execute the script directly if no recent results exist to establish a baseline.
-
