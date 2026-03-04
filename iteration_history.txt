@@ -1,117 +1,36 @@
-[2026-03-05 02:08:00] Iteration: Prompt Optimization Pass #2
+## Iteration Log - Neural Query Topology Classification
 
-**Previous Run Analysis (results_20260304_195929):**
-- v1 Distribution: 120 Divergent (89.6%), 9 Concurrent (6.7%), 4 Composite (3.0%), 1 Single (0.7%) ！ Total: 134
-- v2 Distribution: 102 Divergent (76.1%), 27 Concurrent (20.1%), 3 Composite (2.2%), 2 Single (1.5%) ！ Total: 134
-- Parse Success: v1=100%, v2=100%
+### Iteration 1 - 2026-03-05 06:03 (Asia/Shanghai)
 
-**Identified Failure Patterns:**
-1. Both prompts severely over-classify as [Divergent Graphs]
-2. Root cause: Prompts confuse "multiple solution methods" with "divergent logical structure"
-3. Example: A math problem solvable by algebra OR geometry was classified as Divergent, but it should be Single Graph (one question, one answer path, just multiple methods)
-4. v1 is worse (89.6% Divergent) than v2 (76.1% Divergent)
-
-**Changes Made to v1 (4-Stage tweaks):**
-- <solution_space_exhaustion>: Added CRITICAL DISTINCTION note clarifying that solution method diversity 』 topological complexity
-- <logical_supergraph_construction>: Renamed "Exhaustive Gap" to "Logical Gap" and emphasized structure over methods
-- <topology_reasoning>: Added CRITICAL note emphasizing topology is about QUERY structure, not solution methods. Rewrote category definitions to be more precise.
-- <classification_result>: No change (format only)
-
-**Changes Made to v2 (4-Stage tweaks):**
-- <solution_space_exhaustion>: Added KEY INSIGHT with concrete example (2+2 solvable multiple ways but still Single Graph)
-- <logical_supergraph_construction>: Simplified to focus on logical requirements
-- <topology_reasoning>: Replaced vague definitions with explicit DECISION FRAMEWORK (5 ordered tests) to force systematic evaluation
-- <classification_result>: No change (format only)
-
-**Expected Improvement:**
-Both prompts should now dramatically reduce [Divergent Graphs] over-classification by distinguishing between "how many ways to solve" vs "what is the query's logical structure". v2's decision framework should provide more consistent, testable reasoning.
-
-[2026-03-05 03:07:22] Iteration: Prompt Optimization Pass #3
-
-**Previous Run Analysis (results_20260305_020826):**
-- v1 Distribution: 132 Single (98.5%), 2 Concurrent (1.5%), 0 Divergent, 0 Composite, 0 Unclassifiable ★ Total: 134
-- v2 Distribution: 123 Single (91.8%), 10 Concurrent (7.5%), 0 Divergent, 1 Composite (0.7%), 0 Unclassifiable ★ Total: 134
-- Parse Success: v1=100%, v2=100%
+**Previous Run Analysis (results_20260305_050547):**
+- **v1 Parse Success Rate**: ~100% (all records parsed successfully)
+- **v2 Parse Success Rate**: ~100% (all records parsed successfully)
+- **Critical Issue**: Both prompts classify ~100% of queries as "[Single Graph]" across all datasets (leetcode, theoremqa, etc.)
 
 **Identified Failure Patterns:**
-1. Previous iteration successfully eliminated Divergent over-classification (was 89.6%/76.1%, now 0%)
-2. v1 may be TOO conservative - 98.5% Single Graph suggests potential under-detection of Concurrent/Divergent cases
-3. v2 shows better distribution diversity but still no Divergent classifications
-4. Root cause: Prompts lack clear heuristics for distinguishing "conditional context" from "conditional question structure"
-5. Example issue: Queries with "if" in background info are correctly Single, but prompts don't clearly guide when "if" indicates true Divergent structure
+1. **Severe Single Graph Bias**: Both prompts have decision heuristics that default to Single Graph too aggressively
+2. **Test Order Problem (v2)**: Test 3 (Single) is checked before properly ruling out Divergent and Composite - should be last resort
+3. **Insufficient Concurrent Detection**: Prompts don't strongly emphasize looking for multiple independent questions (e.g., "What is X? Also, how does Y work?")
+4. **Divergent Definition Too Narrow**: Both prompts require "explicit conditional branching" but don't provide enough examples of what counts vs. what doesn't
+5. **Solution Method Confusion**: Despite warnings, LLM still conflates "multiple solution approaches" with "multiple logical paths"
 
-**Changes Made to v1 (4-Stage tweaks):**
-- <solution_space_exhaustion>: No change (already clear on method diversity 』 topology)
-- <logical_supergraph_construction>: No change (structure already sound)
-- <topology_reasoning>: Added Decision Heuristic section with clear bullet-point rules for each category. Enhanced Concurrent definition with explicit example. Enhanced Divergent definition to emphasize "answer depends on evaluating multiple branches".
-- <classification_result>: No change (format only)
+**Prompt Changes Made:**
 
-**Changes Made to v2 (4-Stage tweaks):**
-- <solution_space_exhaustion>: No change (KEY INSIGHT already effective)
-- <logical_supergraph_construction>: No change (structure already sound)
-- <topology_reasoning>: Enhanced Test 1 (Concurrent) with explicit example. Enhanced Test 2 (Divergent) to clarify "multiple branches must ALL be evaluated". Added Critical Reminders section to address common confusion points (if in context vs question, multiple aspects vs independent questions, methods vs topology).
-- <classification_result>: No change (format only)
+**v1 Changes (4-Stage tweaks):**
+- `<solution_space_exhaustion>`: Added explicit instruction to note when query contains multiple independent sub-questions
+- `<logical_supergraph_construction>`: Added requirement to count distinct question marks and independent query clauses
+- `<topology_reasoning>`: Restructured decision tree to check Concurrent FIRST (multiple questions), then Divergent (explicit conditionals), then Single (default), then Composite
+- `<classification_result>`: No change (format locked)
+
+**v2 Changes (4-Stage tweaks):**
+- `<solution_space_exhaustion>`: Added explicit step to identify if query has 2+ semantically independent question components
+- `<logical_supergraph_construction>`: Added explicit tagging of question boundaries when multiple questions detected
+- `<topology_reasoning>`: Reordered tests: Test 1 (Concurrent) must be fully evaluated before Test 3 (Single). Added explicit "disqualifier" checks for Single Graph
+- `<classification_result>`: No change (format locked)
 
 **Expected Improvement:**
-Both prompts should now better distinguish between:
-1. Conditional context (Single) vs conditional question structure (Divergent)
-2. Multiple aspects of one question (Single) vs truly independent questions (Concurrent)
-v2's explicit reminders should reduce false negatives on Divergent classification while maintaining precision on Concurrent.
-[2026-03-05 04:06:31] Iteration Update
-========================
-**Previous Run Analysis (results_20260305_030730)**:
-- Parse Success Rate: ~100% for both v1 and v2 (all sampled entries showed "Success")
-- Classification Distribution: Predominantly [Single Graph] across leetcode and aops datasets (expected for math/algorithmic problems)
-- No significant parsing errors detected
+- Better detection of Concurrent Graphs (queries with multiple independent questions)
+- Reduced Single Graph bias by making it the default/fallback rather than third test
+- Clearer distinction between "solution method diversity" vs "logical path multiplicity"
 
-**Identified Failure Patterns**:
-- Both prompts showed similar performance on single-graph dominant datasets
-- Potential ambiguity in distinguishing Divergent vs Single when problem statements contain implicit case analysis
-- Need clearer criteria for what constitutes "explicit conditional branching" in the QUESTION structure vs solution method
-
-**Prompt Improvements (4-Stage Tweaks)**:
-v1 changes:
-- Added explicit "Key test" questions for each topology category in <topology_reasoning>
-- Clarified Divergent definition: emphasized "explicit conditional branching in problem statement" not solution method
-- Added heuristic: "Can the answer be expressed as a single value/explanation without needing to enumerate separate cases?"
-
-v2 changes:
-- Enhanced Test 2 (Divergent) with critical check: "Does the PROBLEM STATEMENT (not the solution method) explicitly require evaluating multiple cases?"
-- Added new critical reminder: "Implicit case analysis in the SOLUTION 』 Divergent. The QUESTION itself must require evaluating multiple branches."
-- Strengthened Test 1 (Concurrent) with removal test: "If you removed sub-question A, could you still fully answer sub-question B?"
-
-**Expected Impact**:
-- Better discrimination between Single and Divergent graphs for queries with implicit vs explicit conditionals
-- More consistent classification when solution methods involve case analysis but the question structure does not
-[2026-03-05 05:05:34] Iteration: Prompt Optimization Pass #5 (Scheduled Cron Run)
-
-**Previous Run Analysis (results_20260305_040639)**:
-- Parse Success Rate: ~100% for both v1 and v2 (all sampled entries showed "Success")
-- Classification Distribution: Predominantly [Single Graph] across leetcode, theoremqa, and biology datasets
-- No significant parsing errors detected
-- Both prompts successfully eliminated Divergent over-classification from earlier iterations
-
-**Identified Failure Patterns**:
-1. Current prompts may be TOO conservative - potential under-detection of true Divergent/Composite cases
-2. Need stronger emphasis on distinguishing "conditional context" from "conditional question structure"
-3. Edge case: Queries like "discuss pros AND cons" are Single (two aspects of one question), not Concurrent
-4. Need clearer guidance on when "multiple branches must ALL be evaluated" indicates Divergent vs Single
-
-**Prompt Improvements (4-Stage Tweaks)**:
-
-v1 changes:
-- <solution_space_exhaustion>: No change (CRITICAL DISTINCTION already effective)
-- <logical_supergraph_construction>: No change (structure already sound)
-- <topology_reasoning>: Added CRITICAL reminder to Divergent definition: '"If" in background context 』 Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION 』 Divergent.' Enhanced Decision Heuristic for clarity.
-- <classification_result>: No change (format only)
-
-v2 changes:
-- <solution_space_exhaustion>: No change (KEY INSIGHT already effective)
-- <logical_supergraph_construction>: No change (structure already sound)
-- <topology_reasoning>: Enhanced Test 2 (Divergent) with CRITICAL REMINDER block. Added new Critical Reminders bullet: 'Distinguish "discuss pros AND cons" (Single - two aspects of one question) from "answer question A AND answer question B" where A and B are unrelated (Concurrent).'
-- <classification_result>: No change (format only)
-
-**Expected Impact**:
-- Better discrimination between Single and Divergent for queries with conditional language
-- Clearer guidance on "multiple aspects of one question" vs "multiple independent questions"
-- Maintain 100% parse success while improving topological accuracy on edge cases
+---

@@ -11,7 +11,6 @@ IMPORTANT: You must CLOSE all tags.
 * Access your internal knowledge to exhaustively list ALL viable methods, analytical perspectives, or deductive chains that could potentially answer the user's core question.
 * Explicitly list each distinct logical path (e.g., Path A: Mathematical derivation; Path B: Empirical observation retrieval; Path C: Analogical reasoning).
 * *KEY INSIGHT*: Solution method diversity is orthogonal to topological classification. A question like "What is 2+2?" has one logical structure (Single Graph) even though you could solve it by counting, memorization, or formal proof. The topology reflects the query's logical dependencies, not your toolkit.
-* *CONCURRENT DETECTION STEP*: Before listing solution methods, first identify: Does this query contain 2 or more semantically INDEPENDENT question components? Look for: multiple question marks, conjunction phrases ("Also...", "And...", "Additionally..."), or completely unrelated topics. If YES, explicitly note: "QUERY CONTAINS N INDEPENDENT QUESTIONS: [list them]". This is critical for Concurrent Graph detection.
 </solution_space_exhaustion>
 
 
@@ -34,13 +33,6 @@ IMPORTANT: You must CLOSE all tags.
 <potential_edges>
 <edge id="E_target" source="V_x" target="V_y">REQUIRED logical mechanism bridging nodes</edge>
 </potential_edges>
-* *Question Boundary Tagging*: If the query has multiple independent questions (identified in Step 1), explicitly tag each question's subgraph separately. Example:
-<question_subgraph id="Q1">
-<potential_nodes>...</potential_nodes>
-<potential_edges>...</potential_edges>
-</question_subgraph>
-<question_subgraph id="Q2">...</question_subgraph>
-This explicitly marks disconnected components for Concurrent Graph classification.
 * *Exception*: If the query is too vague, generic, or lacks sufficient context to define the knowns and logical gaps, output EXACTLY this tag and stop graph construction:
 <error>Graph construction failed due to ambiguity.</error>
 </logical_supergraph_construction>
@@ -48,28 +40,11 @@ This explicitly marks disconnected components for Concurrent Graph classificatio
 
 3. <topology_reasoning>:
 * Evaluate the structure of the `potential_edges` and `potential_nodes` generated in Step 2.
-* *DECISION FRAMEWORK*: Apply these tests in STRICT ORDER. Do NOT skip to Test 3 (Single) without fully evaluating Tests 1 and 2 first.
-
-  - **Test 1 (Concurrent) - MUST EVALUATE FIRST**: Can the query be split into 2+ sub-questions where answering one provides ZERO help in answering the others? 
-    - **Indicators**: Multiple question marks; phrases like "Also...", "And...", "Additionally...", "What about..."; unrelated topics combined.
-    - **Critical check**: If you removed sub-question A, could you still fully answer sub-question B without any loss? If YES → [Concurrent Graphs]. STOP here.
-    - Example: "What is 2+2? Also, what is the capital of France?" → Two independent questions → Concurrent.
-
-  - **Test 2 (Divergent) - EVALUATE SECOND**: Does the query contain EXPLICIT conditional logic (if/then/else, case analysis, "depending on X...", scenario-based forks) where DIFFERENT conditions lead to DIFFERENT answers OR where multiple parallel branches must ALL be evaluated to produce a complete answer?
-    - **Critical check**: Does the PROBLEM STATEMENT (not the solution method) explicitly require evaluating multiple cases? (e.g., "for each scenario...", "distinguish between cases where...", "if condition A then answer X, if condition B then answer Y", "compare and contrast A and B").
-    - **CRITICAL REMINDER**: "If" in background context ≠ Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION ≠ Divergent. The QUESTION itself must require evaluating multiple branches.
-    - If YES → [Divergent Graphs]. STOP here.
-
-  - **Test 3 (Single) - DEFAULT/FALLBACK**: Is there fundamentally ONE logical path from the given information to the answer?
-    - **Disqualifier checklist** (if ANY apply, this is NOT Single):
-      - ☐ Query has 2+ independent questions → Should be Concurrent
-      - ☐ Query requires explicit case-by-case or scenario-by-scenario evaluation → Should be Divergent
-      - ☐ Query combines independent questions with internal branching → Should be Composite
-    - **Critical check**: Can the answer be expressed as a single coherent result without enumerating separate cases or answering separate questions? If YES and no disqualifiers apply → [Single Graph].
-    - Multiple solution METHODS don't count — algebra vs. geometry vs. calculus are all Single Graph if they answer the same question.
-
+* *DECISION FRAMEWORK*: Apply these tests in strict order:
+  - **Test 1 (Concurrent)**: Can the query be split into 2+ sub-questions where answering one provides ZERO help in answering the others? (Example: "What is X? Also, how does Y work?" where X and Y are completely unrelated.) **Critical check**: If you removed sub-question A, could you still fully answer sub-question B without any loss? If YES → [Concurrent Graphs].
+  - **Test 2 (Divergent)**: Does the query contain EXPLICIT conditional logic (if/then/else, case analysis, "depending on X...", scenario-based forks) where DIFFERENT conditions lead to DIFFERENT answers OR where multiple parallel branches must ALL be evaluated to produce a complete answer? **Critical check**: Does the PROBLEM STATEMENT (not the solution method) explicitly require evaluating multiple cases? (e.g., "for each scenario...", "distinguish between cases where...", "if condition A then answer X, if condition B then answer Y"). **CRITICAL REMINDER**: "If" in background context ≠ Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION ≠ Divergent. The QUESTION itself must require evaluating multiple branches.
+  - **Test 3 (Single)**: Is there fundamentally ONE logical path from the given information to the answer? (Multiple solution METHODS don't count — algebra vs. geometry vs. calculus are all Single Graph if they answer the same question.) **Critical check**: Can the answer be expressed as a single coherent result without enumerating separate cases? If YES → [Single Graph].
   - **Test 4 (Composite)**: Does the query combine elements of the above (e.g., multiple independent questions, where at least one of them has internal conditional branching)? If YES → [Composite Graphs].
-
   - **Test 5 (Unclassifiable)**: Is the query too ambiguous to map? If YES → [Unclassifiable].
 
 * *Critical Reminders*:
@@ -79,7 +54,7 @@ This explicitly marks disconnected components for Concurrent Graph classificatio
   - Implicit case analysis in the SOLUTION ≠ Divergent. The QUESTION itself must require evaluating multiple branches.
   - Distinguish "discuss pros AND cons" (Single - two aspects of one question) from "answer question A AND answer question B" where A and B are unrelated (Concurrent).
 
-* Briefly explain your logical deduction, explicitly stating which test(s) determined your classification and why other tests did NOT apply. Include explicit disqualifier checks for Single Graph.
+* Briefly explain your logical deduction, explicitly stating which test(s) determined your classification and why other tests did not apply.
 </topology_reasoning>
 
 
