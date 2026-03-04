@@ -106,28 +106,30 @@ async def process_sample(sample, prompt_template, prompt_dir, prompt_name):
             import json as json_lib
             json_data = json_lib.loads(result_str.strip())
             if "reasoning" in json_data and "category" in json_data:
-                merged_data["query_intent_analysis"] = ""
-                merged_data["logical_graph_construction"] = ""
+                # 兼容旧的JSON格式，将其映射到新的四个字典键中
+                merged_data["solution_space_exhaustion"] = ""
+                merged_data["logical_supergraph_construction"] = ""
                 merged_data["topology_reasoning"] = json_data.get("reasoning", "")
                 merged_data["classification_result"] = "[" + json_data.get("category", "") + "]"
                 merged_data["parse_status"] = "Success"
             else:
                 raise ValueError("Missing required JSON keys")
         except:
-            # Fall back to tag extraction
-            merged_data["query_intent_analysis"] = extract_tag_content(result_str, "query_intent_analysis")
-            merged_data["logical_graph_construction"] = extract_tag_content(result_str, "logical_graph_construction")
+            # Fall back to tag extraction (修改为最新的4个XML阶段标签)
+            merged_data["solution_space_exhaustion"] = extract_tag_content(result_str, "solution_space_exhaustion")
+            merged_data["logical_supergraph_construction"] = extract_tag_content(result_str, "logical_supergraph_construction")
             merged_data["topology_reasoning"] = extract_tag_content(result_str, "topology_reasoning")
             merged_data["classification_result"] = extract_tag_content(result_str, "classification_result")
             
-            if not any([merged_data["query_intent_analysis"], merged_data["logical_graph_construction"], merged_data["topology_reasoning"], merged_data["classification_result"]]):
+            # 校验是否成功提取了最新的4个标签中的任意一个
+            if not any([merged_data["solution_space_exhaustion"], merged_data["logical_supergraph_construction"], merged_data["topology_reasoning"], merged_data["classification_result"]]):
                 merged_data["parse_status"] = "Tag Extraction Failed"
                 merged_data["raw_llm_response"] = result_str
             else:
                 merged_data["parse_status"] = "Success"
     else:
         merged_data["parse_status"] = "API Timeout/Error"
-        
+                
     # 动态确定输出文件路径
     source_file = sample.get("source_file", "unknown_dataset.jsonl")
     output_file = os.path.join(prompt_dir, source_file)
