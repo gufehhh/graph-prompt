@@ -66,3 +66,47 @@ For v2:
 - Added more edge case examples (iterative/loop-based problems)
 
 ---
+
+### Iteration 3 - 2026-03-04 18:14 (Scheduled Execution)
+
+**Evaluation Summary:**
+- Analyzed results_20260304_174548 from previous run
+- v1: 133/134 successful (99.25%) - 1 parse failure in bright_aops_queries.jsonl
+- v2: 134/134 successful (100%) - 0 failures
+- 0 classification errors in both prompts (all math problems correctly identified as Single Graph)
+
+**Failure Patterns Identified:**
+
+1. **Parse Failure (v1)**: Query id=math_train_intermediate_algebra_1268 had "Tag Extraction Failed". The raw_llm_response shows valid JSON: `{"reasoning": "...", "category": "Single Graph"}`. The parser in main.py failed to extract it, possibly due to subtle formatting issues (whitespace, escaping) or regex limitations.
+
+2. **No Classification Errors**: Both prompts correctly classified all queries. Math/algorithm problems are all Single Graph, which is correct per domain definitions.
+
+**Root Causes:**
+- The parse failure appears to be a parser sensitivity issue rather than LLM output error
+- However, to maximize robustness, prompts need even stricter JSON format enforcement
+- Added explicit "CORRECT/WRONG" examples with visual formatting cues
+- Emphasized single-line JSON, no leading/trailing whitespace, proper escaping
+
+**Changes Made:**
+
+For v1:
+- Added "ABSOLUTELY STRICT - PARSER DEPENDS ON THIS" header to emphasize importance
+- Added numbered CRITICAL FORMAT RULES section (6 specific rules)
+- Added visual CORRECT/WRONG examples with annotations (leading spaces, trailing newline)
+- Added "JSON must be on a SINGLE LINE" requirement
+- Added "Escape special characters properly" instruction (important for math queries with LaTeX)
+- Strengthened "COMMON MISTAKES TO AVOID" with whitespace-specific warning
+
+For v2:
+- Added same "ABSOLUTELY STRICT - PARSER DEPENDS ON THIS" header
+- Added identical CRITICAL FORMAT RULES section for consistency
+- Added same CORRECT/WRONG examples with annotations
+- Added single-line JSON and escaping requirements
+- Maintained table format (proven effective) while adding stricter format enforcement
+
+**Expected Improvement:**
+- Both prompts should now achieve 100% parse success rate
+- Stricter formatting instructions should eliminate edge-case parser failures
+- Explicit escaping guidance should help with math queries containing LaTeX/special chars
+
+---

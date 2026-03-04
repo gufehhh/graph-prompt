@@ -31,36 +31,24 @@ You will ONLY receive the user query.
    - ❌ NOT UNCLASSIFIABLE: Well-defined algorithm problems, even complex ones → These are Single Graph
    - Only use this for truly incoherent queries like "tell me stuff" or "what about that thing"
 
-## OUTPUT FORMAT (ABSOLUTELY STRICT - PARSER DEPENDS ON THIS)
+## OUTPUT FORMAT (STRICT JSON - NO EXCEPTIONS)
 
 You MUST output ONLY a valid JSON object with exactly two keys:
 - "reasoning": A brief explanation of your classification decision (1-3 sentences)
 - "category": Exactly one of the five category names (without brackets)
 
-### CRITICAL FORMAT RULES (VIOLATION = PARSING FAILURE)
-
-1. Output RAW JSON ONLY - no text before, no text after
-2. NO markdown code blocks - NEVER use ```json or ```
-3. NO extra whitespace - no leading/trailing spaces or newlines
-4. JSON must be on a SINGLE LINE
-5. Escape special characters properly (backslashes as \\, quotes as \")
-6. Category must match EXACTLY: "Single Graph", "Concurrent Graphs", "Divergent Graphs", "Composite Graphs", or "Unclassifiable"
-
-### CORRECT OUTPUT EXAMPLE:
+Example output:
 {"reasoning": "This query requires sequential multi-hop reasoning but forms a single connected path from the initial state to the final answer.", "category": "Single Graph"}
 
-### WRONG OUTPUT EXAMPLES (NEVER DO THESE):
-```json
-{"reasoning": "...", "category": "..."}
-```
-
-  {"reasoning": "...", "category": "..."}
-(leading spaces)
-
-{"reasoning": "...", "category": "..."}
-(trailing newline)
-
-Any text before or after the JSON
+CRITICAL FORMAT RULES:
+- DO NOT output any text before or after the JSON
+- DO NOT use markdown code blocks (NO ```json ... ``` or ``` ... ```)
+- DO NOT include {query} placeholders
+- DO NOT add explanations outside the JSON
+- Output RAW JSON only, nothing else
+- WRONG: ```json {"reasoning": "...", "category": "..."} ```
+- WRONG: {"reasoning": "...", "category": "..."} (with extra newlines or spaces)
+- RIGHT: {"reasoning": "...", "category": "..."}
 
 ## DECISION PROCESS
 
@@ -78,6 +66,5 @@ Any text before or after the JSON
 - ❌ Classifying an algorithm problem as Unclassifiable because it's complex → WRONG, it's Single Graph
 - ❌ Outputting markdown code blocks around JSON → WRONG, output raw JSON only
 - ❌ Adding extra text before or after JSON → WRONG, JSON only
-- ❌ Including leading/trailing whitespace → WRONG, JSON must start at first character
 
 Now classify this query:

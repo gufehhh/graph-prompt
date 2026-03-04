@@ -39,34 +39,24 @@ You are a query topology classifier. Classify the logical structure of the given
 - ✅ Math derivation problems → Single Graph
 - ❌ "Do A if X, do B if not X" (as separate requests) → Divergent Graphs
 
-## OUTPUT FORMAT (ABSOLUTELY STRICT - PARSER DEPENDS ON THIS)
+## OUTPUT FORMAT (STRICT - NO EXCEPTIONS)
 
 Output ONLY valid JSON with two keys. NO markdown, NO code blocks, NO extra text.
 
-### CRITICAL FORMAT RULES (VIOLATION = PARSING FAILURE)
+CORRECT:
+{"reasoning": "Your 1-2 sentence explanation", "category": "Exact category name"}
 
-1. Output RAW JSON ONLY - no text before, no text after
-2. NO markdown code blocks - NEVER use ```json or ```
-3. NO extra whitespace - no leading/trailing spaces or newlines
-4. JSON must be on a SINGLE LINE
-5. Escape special characters properly (backslashes as \\, quotes as \")
-6. Category must match EXACTLY: "Single Graph", "Concurrent Graphs", "Divergent Graphs", "Composite Graphs", or "Unclassifiable"
-
-### CORRECT OUTPUT EXAMPLE:
-{"reasoning": "This query requires sequential multi-hop reasoning but forms a single connected path from the initial state to the final answer.", "category": "Single Graph"}
-
-### WRONG OUTPUT EXAMPLES (NEVER DO THESE):
+WRONG (do NOT do these):
 ```json
 {"reasoning": "...", "category": "..."}
 ```
 
-  {"reasoning": "...", "category": "..."}
-(leading spaces)
-
 {"reasoning": "...", "category": "..."}
-(trailing newline)
+(With extra newlines or spaces)
 
 Any text before or after the JSON
+
+Valid categories: "Single Graph", "Concurrent Graphs", "Divergent Graphs", "Composite Graphs", "Unclassifiable"
 
 ## QUICK CLASSIFICATION FLOW
 
