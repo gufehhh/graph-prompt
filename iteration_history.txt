@@ -34,3 +34,35 @@ For v2:
 - Add explicit "NOT Divergent" examples section
 
 ---
+
+### Iteration 2 - 2026-03-04 17:44 (Scheduled Execution)
+
+**Evaluation Summary:**
+- Analyzed results_20260304_171528 from previous run
+- v1: 124/125 successful (99.2%) - 1 parse failure
+- v2: 125/125 successful (100%) - 0 failures
+- 0 classification errors in both prompts
+
+**Failure Patterns Identified:**
+
+1. **Minor Parse Failure (v1)**: 1 entry in bright_aops_queries.jsonl had "Tag Extraction Failed". The LLM output valid JSON but the parser couldn't extract it. This suggests the LLM may have added subtle formatting issues (extra whitespace, markdown artifacts).
+
+**Root Causes:**
+- JSON format instructions need even stronger emphasis with explicit WRONG/RIGHT examples
+- Both prompts are performing excellently on classification accuracy
+
+**Changes Made:**
+
+For v1:
+- Added explicit "COMMON MISTAKES TO AVOID" section with concrete examples
+- Strengthened JSON format rules with WRONG/RIGHT examples
+- Added more explicit examples of what is NOT Divergent (game simulations, iterative algorithms)
+- Clarified that ALL algorithm/simulation/math problems are Single Graph
+
+For v2:
+- Kept table format but added more comprehensive examples
+- Added "WHAT IS ALWAYS SINGLE GRAPH" section to prevent common mistakes
+- Strengthened JSON format enforcement with explicit CORRECT/WRONG examples
+- Added more edge case examples (iterative/loop-based problems)
+
+---

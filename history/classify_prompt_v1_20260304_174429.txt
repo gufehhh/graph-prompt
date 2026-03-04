@@ -6,12 +6,10 @@ You will ONLY receive the user query.
 ## STRICT DEFINITIONS (MUST FOLLOW)
 
 1. **[Single Graph]**: A continuous, unbroken retrieval path. Even if the query requires multi-hop or sequential reasoning steps, if they form ONE connected chain from start to finish, it is Single Graph.
-   - ✅ Standard algorithm problems (leetcode, math derivation, optimization) → Single Graph
-   - ✅ Simulation problems with rules (game simulation, round-based procedures) → Single Graph
-   - ✅ Problems with "if conditions" INSIDE a single algorithm (e.g., "if ak >= bk, then Alice wins that round") → STILL Single Graph. This is internal logic, NOT divergent branching.
-   - ✅ "Find X where condition Y is met" → Single Graph
-   - ✅ Iterative/loop-based problems → Single Graph
    - Example: "Find the capital of France, then tell me the population of that city" → Single Graph (sequential but connected)
+   - Example: Any standard algorithm problem (leetcode, math derivation, optimization) → Single Graph
+   - Example: Simulation problems with rules (game simulation, round-based procedures) → Single Graph
+   - IMPORTANT: Problems with "if conditions" INSIDE a single algorithm (e.g., "if ak >= bk, then Alice wins that round") are STILL Single Graph. This is internal logic, NOT divergent branching.
 
 2. **[Concurrent Graphs]**: Multiple INDEPENDENT, PARALLEL sub-queries with NO logical dependency between them. Each sub-query could be answered completely separately without knowing the answer to the others.
    - Example: "What is the capital of France? Also, what is the capital of Japan?" → Concurrent Graphs (two independent questions)
@@ -21,15 +19,13 @@ You will ONLY receive the user query.
    - Example: "If the stock price is above $100, buy it; otherwise, wait" → Divergent Graphs
    - Example: "What should I do if it rains? What if it's sunny?" → Divergent Graphs (asks for TWO different scenarios)
    - KEY TRIGGER: Look for words like "if", "otherwise", "depending on", "in case", "when X vs when Y"
-   - ❌ NOT DIVERGENT: A single algorithm that uses if-statements internally (e.g., "find the maximum where x > 0") → This is Single Graph
-   - ❌ NOT DIVERGENT: Game simulations with win/loss conditions → This is Single Graph
+   - NOT DIVERGENT: A single algorithm that uses if-statements internally (e.g., "find the maximum where x > 0") → This is Single Graph
 
 4. **[Composite Graphs]**: A complex mixture of the above types. Contains BOTH parallel independent components AND sequential/conditional logic within those components.
    - Example: "For each of these three cities, find their population and then calculate the average. Also, separately, tell me the weather in Tokyo." → Composite (has concurrent + sequential elements)
 
 5. **[Unclassifiable]**: The query is too vague, ambiguous, or lacks any discernible logical structure.
-   - ❌ NOT UNCLASSIFIABLE: Well-defined algorithm problems, even complex ones → These are Single Graph
-   - Only use this for truly incoherent queries like "tell me stuff" or "what about that thing"
+   - NOT UNCLASSIFIABLE: Well-defined algorithm problems, even complex ones → These are Single Graph
 
 ## OUTPUT FORMAT (STRICT JSON - NO EXCEPTIONS)
 
@@ -42,29 +38,17 @@ Example output:
 
 CRITICAL FORMAT RULES:
 - DO NOT output any text before or after the JSON
-- DO NOT use markdown code blocks (NO ```json ... ``` or ``` ... ```)
+- DO NOT use markdown code blocks (no ```json ... ```)
 - DO NOT include {query} placeholders
-- DO NOT add explanations outside the JSON
 - Output RAW JSON only, nothing else
-- WRONG: ```json {"reasoning": "...", "category": "..."} ```
-- WRONG: {"reasoning": "...", "category": "..."} (with extra newlines or spaces)
-- RIGHT: {"reasoning": "...", "category": "..."}
 
 ## DECISION PROCESS
 
 1. First, check if the query has multiple distinct sub-questions
 2. If YES: Are they independent (Concurrent) or does one depend on the other (Single)?
 3. Check for conditional language (if/else/depending) → But remember: internal algorithm conditions ≠ Divergent
-4. Is it a simulation, game, or algorithm with rules? → Single Graph (NOT Divergent)
-5. Check for mixture of patterns → Composite
-6. If it's a single coherent question with sequential steps → Single Graph
-7. If truly vague with no structure → Unclassifiable
-
-## COMMON MISTAKES TO AVOID
-
-- ❌ Classifying a game simulation as Divergent because it has win/loss rules → WRONG, it's Single Graph
-- ❌ Classifying an algorithm problem as Unclassifiable because it's complex → WRONG, it's Single Graph
-- ❌ Outputting markdown code blocks around JSON → WRONG, output raw JSON only
-- ❌ Adding extra text before or after JSON → WRONG, JSON only
+4. Check for mixture of patterns → Composite
+5. If it's a single coherent question with sequential steps → Single Graph
+6. If too vague → Unclassifiable
 
 Now classify this query:
