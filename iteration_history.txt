@@ -34,3 +34,25 @@
 - Clearer distinction between "solution method diversity" vs "logical path multiplicity"
 
 ---
+[20260305_070535] Iteration Analysis - Results from results_20260305_060622
+
+**V1 Stats**: Total=134, Success=134 (100%), Single=118 (88.1%), Concurrent=15 (11.2%), Divergent=1 (0.7%)
+**V2 Stats**: Total=134, Success=134 (100%), Single=125 (93.3%), Concurrent=8 (6.0%), Divergent=1 (0.7%)
+
+**Key Failure Pattern Identified**:
+V1 is OVER-classifying queries as Concurrent Graphs. Analysis of 4 divergent classifications (IDs: 28, 85, 34, 98) shows V1 incorrectly flags queries with:
+- Multiple reformulations of the SAME question as "independent questions"
+- Background context and examples as separate questions
+- Follow-up clarifications that serve the same core query
+
+V2 appears more accurate but may be UNDER-detecting true Concurrent cases.
+
+**Root Cause**: 
+The <solution_space_exhaustion> and <topology_reasoning> stages lack precise guidance on distinguishing:
+1. TRUE Concurrent: Multiple SEMANTICALLY INDEPENDENT questions (e.g., "What is X? Also, how does Y work?" where X and Y are unrelated)
+2. Single with Context: One core question with background, reformulations, or elaborations
+
+**Planned Changes**:
+- V1: Strengthen the "CONCURRENT CHECK" to require TRUE semantic independence, not just multiple question marks
+- V2: Add explicit examples of what does NOT count as Concurrent (reformulations, context, follow-ups to same topic)
+- Both: Clarify that questions about the SAME topic with logical dependency are NOT Concurrent

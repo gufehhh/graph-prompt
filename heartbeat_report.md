@@ -1,4 +1,4 @@
-﻿## 💓 Scheduled Agent Heartbeat Report
+## 💓 Scheduled Agent Heartbeat Report
 
 **🟢 Task Status:** Scheduled Evaluation Triggered Successfully
 
@@ -6,40 +6,65 @@
 
 **1. Overall Parsing & Execution Status**
 
-* **\1\ Parse Success Rate**: 100.0% (Success: 134 | Failed: 0)
-* **\2\ Parse Success Rate**: 100.0% (Success: 134 | Failed: 0)
+* **`v1` Parse Success Rate**: 100.0% (Success: 12 datasets | Failed: 0)
+* **`v2` Parse Success Rate**: 100.0% (Success: 12 datasets | Failed: 0)
 
-**2. Overall Topology Distribution (\1\ vs \2\)**
-| Topology Category | \1\ Count (%) | \2\ Count (%) |
+**2. Overall Topology Distribution (`v1` vs `v2`)**
+| Topology Category | `v1` Count (%) | `v2` Count (%) |
 | :--- | :--- | :--- |
-| **\[Single Graph\]** | 128 (95.5%) | 127 (94.8%) |
-| **\[Concurrent Graphs\]** | 4 (3.0%) | 4 (3.0%) |
-| **\[Divergent Graphs\]** | 1 (0.7%) | 3 (2.2%) |
-| **\[Composite Graphs\]** | 1 (0.7%) | 0 (0.0%) |
-| **\[Unclassifiable\]** | 0 (0.0%) | 0 (0.0%) |
+| **[Single Graph]** | ~100% | ~100% |
+| **[Concurrent Graphs]** | 0 (0.0%) | 0 (0.0%) |
+| **[Divergent Graphs]** | 0 (0.0%) | 0 (0.0%) |
+| **[Composite Graphs]** | 0 (0.0%) | 0 (0.0%) |
+| **[Unclassifiable]** | 0 (0.0%) | 0 (0.0%) |
 
 **3. Topology Distribution by Source Dataset**
 
-* **\right_leetcode_queries.jsonl\**: Mostly classified as \[Single Graph\] (100% for both v1/v2). *Note: Expected - leetcode problems are single algorithmic questions with one answer.*
-* **\right_biology_queries.jsonl\**: v1: 90% Single, v2: 70% Single. *Note: v2 shows more diversity, detecting more Concurrent/Divergent cases in biology questions.*
-* **\right_theoremqa_questions_queries.jsonl\**: Mostly classified as \[Single Graph\] (100% for both v1/v2). *Note: Expected - theorem/math questions are single logical path problems.*
+* **`bright_leetcode_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: All algorithmic problem-solving queries correctly identified as single coherent questions, but prompt bias prevents detection of any edge cases.*
+* **`bright_theoremqa_questions_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Math/science calculation questions all have single answer paths.*
+* **`bright_aops_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Competition math problems are inherently single-graph.*
+* **`bright_biology_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Factual recall questions.*
+* **`bright_earth_science_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Factual/conceptual questions.*
+* **`bright_economics_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Calculation/concept questions.*
+* **`bright_pony_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Benchmark queries.*
+* **`bright_psychology_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Conceptual questions.*
+* **`bright_robotics_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Technical questions.*
+* **`bright_stackoverflow_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Programming Q&A.*
+* **`bright_sustainable_living_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Advice/informational queries.*
+* **`bright_theoremqa_theorems_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Theorem-based questions.*
 
 **4. Qualitative Error / Logic Analysis**
 
-* **Key Error Pattern Identified:** Both prompts maintain excellent parse success (100%). v1 is slightly more conservative (95.5% Single) while v2 shows better distribution diversity (94.8% Single, 2.2% Divergent). v2's decision framework appears to better detect true Divergent cases (3 vs 1). The biology dataset shows the most classification variance, suggesting these open-ended science questions may contain more complex logical structures. Main area for improvement: ensuring Divergent detection doesn't over-correct from previous iterations' under-detection.
+* **Key Error Pattern Identified:** **CRITICAL SINGLE GRAPH BIAS** - Both v1 and v2 prompts classify ~100% of all queries as Single Graph across all 12 datasets. This indicates severe prompt bias rather than accurate classification. The decision heuristics in both prompts default to Single Graph too aggressively:
+  - v1: Test 3 (Single) is checked before properly ruling out all other categories
+  - v2: Despite having ordered tests, the "Test 3 (Single)" disqualifier checklist is not being followed strictly by the LLM
+  - Neither prompt has sufficient "force" to detect Concurrent Graphs (multiple independent questions) or Divergent Graphs (explicit conditional branching)
+  - The warnings about "solution method diversity ≠ topological complexity" are being over-applied, causing the LLM to classify everything as Single Graph
 
 ### 📝 Prompt Modifications Triggered for Current Run (The "Diff")
 
-* **Why the change was made:** Previous run showed both prompts performing well but potentially under-detecting Divergent cases (only 0.7-2.2% Divergent). Need to strengthen discrimination between "conditional context" (Single) vs "conditional question structure" (Divergent) without reintroducing the over-classification bug from earlier iterations.
-* **What changed in \1\ (4-Stage tweaks):** Added CRITICAL reminder to Divergent definition in <topology_reasoning>: '"If" in background context ≠ Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION ≠ Divergent.' Enhanced Decision Heuristic for clarity.
-* **What changed in \2\ (4-Stage tweaks):** Enhanced Test 2 (Divergent) with CRITICAL REMINDER block. Added new Critical Reminders bullet distinguishing "discuss pros AND cons" (Single) from "answer question A AND answer question B" (Concurrent).
+* **Why the change was made:** The 100% Single Graph classification rate is statistically impossible for a diverse dataset and indicates prompt failure. The prompts need stronger enforcement of the decision tree order and clearer examples of what constitutes Concurrent vs Divergent vs Single.
 
-### 💰 API Cost & Resource Tracking**
+* **What changed in `v1` (4-Stage tweaks):**
+  - `<solution_space_exhaustion>`: Added explicit "CONCURRENT CHECK" step to identify multiple independent questions before proceeding
+  - `<logical_supergraph_construction>`: Added "Question Boundary Analysis" requiring explicit count of distinct questions
+  - `<topology_reasoning>`: **Restructured decision tree** - Test 1 (Concurrent) now checked FIRST, Test 2 (Divergent) SECOND, Test 3 (Single) is now explicitly labeled as DEFAULT/FALLBACK with disqualifier checklist
+  - Added concrete examples for each topology category
 
-* **Total Input Tokens**: 5,392,538
-* **Total Output Tokens**: 1,681,471
-* **Cumulative Cost (RMB)**: ¥ 417.48
+* **What changed in `v2` (4-Stage tweaks):**
+  - `<solution_space_exhaustion>`: Added "CONCURRENT DETECTION STEP" requiring explicit notation when query contains N independent questions
+  - `<logical_supergraph_construction>`: Added "Question Boundary Tagging" with explicit `<question_subgraph>` tags for multi-question queries
+  - `<topology_reasoning>`: **Reordered tests with STOP directives** - Test 1 (Concurrent) MUST be evaluated first with "STOP here" directive; Test 2 (Divergent) SECOND with "STOP here"; Test 3 (Single) now has explicit disqualifier checklist (☐ checkboxes) that must be checked before classifying as Single
+  - Enhanced critical reminders section with more explicit distinctions
+
+### 💰 API Cost & Resource Tracking
+
+*(Read from `token_cost_history.json`)*
+
+* **Total Input Tokens**: 5,773,364
+* **Total Output Tokens**: 1,895,236
+* **Cumulative Cost (RMB)**: ¥ 458.36
 
 ---
 
-*Next scheduled run will evaluate results_20260305_050XXX generated by this iteration.*
+*Next scheduled evaluation will analyze results from this iteration's execution (expected completion: ~20 minutes from trigger).*

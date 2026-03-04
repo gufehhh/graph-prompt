@@ -11,11 +11,8 @@ IMPORTANT: You must CLOSE all tags.
 * List each distinct path (e.g., Path A: Empirical derivation; Path B: First-principles calculation; Path C: Historical comparative analysis).
 * Briefly define the required background knowledge and intermediate logical steps for *each* path.
 * *CRITICAL DISTINCTION*: Multiple solution methods to the SAME question do NOT indicate a complex topology. A math problem solvable by algebra OR geometry is still a single logical path — the methods are interchangeable routes to the same destination, not parallel required branches.
-* *CONCURRENT CHECK - STRICT CRITERIA*: Before proceeding, explicitly check: Does the query contain 2 or more semantically INDEPENDENT questions? Apply these tests:
-  - **TRUE Concurrent indicators**: Questions about completely UNRELATED topics (e.g., "What is the capital of France? Also, explain photosynthesis."); Questions where answering one provides ZERO help for answering the other.
-  - **NOT Concurrent (Single with Context)**: Multiple reformulations of the SAME question; Background context or examples supporting one core question; Follow-up clarifications that logically depend on the main question; Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes it?" — these are the same question).
-  - **Decisive Test**: If you removed sub-question A, would sub-question B still make sense AND require completely different knowledge to answer? If NO → NOT Concurrent.
-* This step represents the sum of all potential problem-solving routes, but remember: solution method diversity ≠ topological complexity. Question reformulation diversity ≠ Concurrent Graphs.
+* *CONCURRENT CHECK*: Before proceeding, explicitly check: Does the query contain 2 or more semantically INDEPENDENT questions? (e.g., "What is X? Also, how does Y work?" where X and Y are unrelated topics). If YES, note this — it indicates Concurrent Graphs.
+* This step represents the sum of all potential problem-solving routes, but remember: solution method diversity ≠ topological complexity.
 </solution_space_exhaustion>
 
 
@@ -37,9 +34,7 @@ IMPORTANT: You must CLOSE all tags.
 <potential_edges>
 <edge id="E_required1" source="V_start1" target="V_target1">REQUIRED logical mechanism to bridge knowns to unknowns</edge>
 </potential_edges>
-* *Question Boundary Analysis*: Count the number of DISTINCT questions (look for multiple question marks, or clauses like "Also...", "Additionally...", "And what about..."). BUT critically evaluate: Are these truly independent, or are they reformulations/context for one core question?
-  - **Single Core Question**: Multiple mentions of the same topic, even with different wording = 1 question
-  - **True Multiple Questions**: Unrelated topics or logically independent inquiries = N questions
+* *Question Boundary Analysis*: Count the number of distinct questions (look for multiple question marks, or clauses like "Also...", "Additionally...", "And what about..."). If 2+ independent questions exist, they form disconnected subgraphs.
 * *Exception*: If the query is fundamentally nonsensical or lacks minimum context to anchor ANY starting node, output EXACTLY this tag and stop graph construction:
 <error>Graph construction failed due to extreme ambiguity.</error>
 </logical_supergraph_construction>
@@ -51,18 +46,9 @@ IMPORTANT: You must CLOSE all tags.
 
 **Test 1 - Concurrent Graphs (CHECK FIRST)**:
 - Does the query ask 2 or more INDEPENDENT questions that have NO logical dependency on each other?
-- **TRUE Concurrent indicators** (ALL must apply):
-  - Questions cover completely UNRELATED topics or domains
-  - Answering question A provides ZERO help for answering question B
-  - Each question would require separate, independent research/knowledge
-  - Example: "What is the capital of France? Also, explain how photosynthesis works."
-- **NOT Concurrent** (these are Single Graph with context):
-  - Multiple reformulations of the same question (e.g., "Why no certification? Is there a reason?")
-  - Background context, examples, or anecdotes supporting one core question
-  - Follow-up clarifications that depend on the main question (e.g., "Is it X? Or is it Y?" — this is ONE classification question)
-  - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes X?")
-- **Decisive test**: If you removed one sub-question, could you still fully answer the others without any loss AND would the remaining questions still make complete sense? If NO → NOT Concurrent.
-- If TRUE Concurrent → [Concurrent Graphs]. STOP here.
+- Key indicators: Multiple question marks; phrases like "Also...", "Additionally...", "And...", "What about..."; completely unrelated topics in one query.
+- **Decisive test**: If you removed one sub-question, could you still fully answer the others without any loss? If YES → [Concurrent Graphs].
+- Example: "What is the capital of France? Also, explain how photosynthesis works." → Two disconnected graphs.
 
 **Test 2 - Divergent Graphs**:
 - Does the query contain EXPLICIT conditional branching (if/then/else, case analysis, scenario-based forks) where DIFFERENT conditions lead to DIFFERENT answers OR where multiple parallel paths must ALL be evaluated to fully answer?
@@ -74,10 +60,9 @@ IMPORTANT: You must CLOSE all tags.
 - Does the query ask ONE coherent question with a single logical answer path?
 - **Key test**: Can the answer be expressed as a single value/explanation without needing to enumerate separate cases or answer separate questions?
 - **Disqualifiers for Single Graph** (if ANY apply, NOT Single):
-  - Query has 2+ TRUE independent questions (unrelated topics) → Concurrent
+  - Query has 2+ independent questions → Concurrent
   - Query requires explicit case-by-case evaluation → Divergent
   - Query combines independent questions where at least one has internal branching → Composite
-- **Important**: Multiple reformulations, context, examples, or follow-ups about the SAME topic do NOT disqualify Single Graph.
 - If none of the above apply → [Single Graph].
 
 **Test 4 - Composite Graphs**:
@@ -88,7 +73,7 @@ IMPORTANT: You must CLOSE all tags.
 **Test 5 - Unclassifiable**:
 - Did graph construction fail due to extreme ambiguity? If YES → [Unclassifiable].
 
-* Briefly explain your logical deduction for choosing the specific topology. Explicitly state which test(s) determined your classification and why other tests did NOT apply. For Single Graph, explicitly confirm that multiple question marks/reformulations do NOT indicate Concurrent.
+* Briefly explain your logical deduction for choosing the specific topology. Explicitly state which test(s) determined your classification and why other tests did NOT apply.
 </topology_reasoning>
 
 
