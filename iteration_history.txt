@@ -170,3 +170,46 @@ For v2:
 - Explicit backslash escaping examples should prevent LaTeX-related parse failures
 
 ---
+
+### Iteration 5 - 2026-03-04 19:43 (Scheduled Execution)
+
+**Evaluation Summary:**
+- Analyzed results_20260304_192356 from previous run
+- Both prompts performing at ~100% parse success rate
+- All leetcode/algorithm queries correctly classified as Single Graph
+- No classification errors detected in sampled files
+
+**Failure Patterns Identified:**
+
+1. **No Parse Failures**: Latest results show 100% parse success for both v1 and v2 prompts.
+
+2. **No Classification Errors**: All algorithm problems, game simulations, and math problems correctly identified as Single Graph.
+
+3. **Minor Refinement Opportunity**: While current performance is excellent, added more explicit examples for edge cases:
+   - Game theory problems (minimax, optimal play) explicitly listed as Single Graph
+   - Dynamic programming problems explicitly listed as Single Graph
+   - Graph traversal problems explicitly listed as Single Graph
+   - Added "Dota2 senate" as explicit example of Single Graph (game simulation)
+   - Strengthened "GAME SIMULATION RULE" in v2 to prevent any ambiguity
+
+**Changes Made:**
+
+For v1:
+- Added explicit category examples: game theory, DP, graph traversal problems
+- Added "CRITICAL EXAMPLES" section with concrete game simulation examples
+- Enhanced "COMMON MISTAKES TO AVOID" with game rule examples
+- Added "Player wins if condition X" and "round-based elimination games" as explicit Single Graph cases
+
+For v2:
+- Added game theory, DP, graph traversal to table examples
+- Added "Dota2 senate voting" and "Two players take turns" to Single vs Divergent comparison table
+- Added explicit "GAME SIMULATION RULE" callout box
+- Enhanced "WHAT IS ALWAYS SINGLE GRAPH" list with game theory, DP, graph traversal
+- Added "Is this a game simulation? If yes, it's Single Graph" to decision checklist
+
+**Expected Improvement:**
+- Maintain 100% parse success rate
+- Further reduce any edge-case classification errors for game simulation queries
+- Make Single vs Divergent distinction even more robust for complex game theory problems
+
+---

@@ -17,15 +17,11 @@ A continuous, unbroken retrieval path. Even if the query requires multi-hop or s
 - ✅ Multi-step calculations where each step depends on the previous
 - ✅ Questions with context/setup followed by a single question
 - ✅ Math problems with LaTeX expressions, formulas, or equations
-- ✅ Game theory problems (minimax, optimal play, turn-based games)
-- ✅ Dynamic programming problems
-- ✅ Graph traversal problems (BFS, DFS, shortest path)
 
-**CRITICAL EXAMPLES:**
-- "Simulate a Dota2 senate voting game where senators ban each other in rounds" → Single Graph (one simulation, one outcome)
-- "Two players take turns picking numbers; determine if player 1 can win" → Single Graph (game simulation)
-- "Find the minimum cost to reach target given constraints" → Single Graph (optimization)
-- "Given elevation map, compute trapped water" → Single Graph (algorithm)
+**EXAMPLES:**
+- "Find the capital of France, then tell me the population of that city" → Single Graph (sequential but connected)
+- "Simulate a game where players alternate turns and win if they reach condition X" → Single Graph
+- "Given array A, find the maximum element where x > 0" → Single Graph
 
 ### 2. [Concurrent Graphs]
 Multiple INDEPENDENT, PARALLEL sub-queries with NO logical dependency between them. Each sub-query could be answered completely separately without knowing the answer to the others.
@@ -54,15 +50,12 @@ Contains EXPLICIT conditional branches where the reasoning path itself splits in
 - ✅ "If the stock price is above $100, buy it; otherwise, wait" → Divergent Graphs
 - ✅ "What should I do if it rains? What if it's sunny?" → Divergent Graphs (asks for TWO different scenarios)
 - ✅ "Explain what happens in case A vs case B" where A and B are mutually exclusive scenarios
-- ✅ "Compare strategy X vs strategy Y" → Divergent Graphs (two separate analyses)
 
-**EXCLUDES (CRITICAL - READ TWICE):**
+**EXCLUDES (CRITICAL):**
 - ❌ A single algorithm that uses if-statements internally → This is Single Graph
 - ❌ Game simulations with win/loss conditions → This is Single Graph
 - ❌ "Find X where condition Y is met" → This is Single Graph (one path, one answer)
 - ❌ Mathematical proofs with cases that lead to the same conclusion → This is Single Graph
-- ❌ "Player wins IF condition met" → This is Single Graph (simulation rule, not divergent)
-- ❌ Round-based procedures with elimination rules → This is Single Graph
 
 **DISTINCTION:** Divergent asks "what happens in scenario A vs scenario B?" (multiple answers). Single Graph asks "what is the answer given these rules?" (one answer).
 
@@ -155,7 +148,5 @@ Any text before or after the JSON - WRONG
 - ❌ Classifying internal algorithm conditions as Divergent → WRONG, it's Single Graph
 - ❌ Forgetting to escape backslashes in math/LaTeX expressions → WRONG, `\(x\)` must be `\\(x\\)`
 - ❌ Including newlines in the JSON output → WRONG, keep everything on one line
-- ❌ Classifying "Player wins if condition X" as Divergent → WRONG, it's Single Graph (game rule)
-- ❌ Classifying round-based elimination games as Divergent → WRONG, it's Single Graph
 
 Now classify this query:
