@@ -135,6 +135,8 @@ async def process_sample(sample, prompt_template, prompt_dir, prompt_name):
     output_file = os.path.join(prompt_dir, source_file)
     
     async with write_lock:
+        # Ensure the directory exists before writing
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(merged_data, ensure_ascii=False) + "\n")
 

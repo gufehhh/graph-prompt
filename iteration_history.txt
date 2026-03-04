@@ -1,0 +1,27 @@
+[2026-03-05 02:08:00] Iteration: Prompt Optimization Pass #2
+
+**Previous Run Analysis (results_20260304_195929):**
+- v1 Distribution: 120 Divergent (89.6%), 9 Concurrent (6.7%), 4 Composite (3.0%), 1 Single (0.7%) ¡ª Total: 134
+- v2 Distribution: 102 Divergent (76.1%), 27 Concurrent (20.1%), 3 Composite (2.2%), 2 Single (1.5%) ¡ª Total: 134
+- Parse Success: v1=100%, v2=100%
+
+**Identified Failure Patterns:**
+1. Both prompts severely over-classify as [Divergent Graphs]
+2. Root cause: Prompts confuse "multiple solution methods" with "divergent logical structure"
+3. Example: A math problem solvable by algebra OR geometry was classified as Divergent, but it should be Single Graph (one question, one answer path, just multiple methods)
+4. v1 is worse (89.6% Divergent) than v2 (76.1% Divergent)
+
+**Changes Made to v1 (4-Stage tweaks):**
+- <solution_space_exhaustion>: Added CRITICAL DISTINCTION note clarifying that solution method diversity ¡Ù topological complexity
+- <logical_supergraph_construction>: Renamed "Exhaustive Gap" to "Logical Gap" and emphasized structure over methods
+- <topology_reasoning>: Added CRITICAL note emphasizing topology is about QUERY structure, not solution methods. Rewrote category definitions to be more precise.
+- <classification_result>: No change (format only)
+
+**Changes Made to v2 (4-Stage tweaks):**
+- <solution_space_exhaustion>: Added KEY INSIGHT with concrete example (2+2 solvable multiple ways but still Single Graph)
+- <logical_supergraph_construction>: Simplified to focus on logical requirements
+- <topology_reasoning>: Replaced vague definitions with explicit DECISION FRAMEWORK (5 ordered tests) to force systematic evaluation
+- <classification_result>: No change (format only)
+
+**Expected Improvement:**
+Both prompts should now dramatically reduce [Divergent Graphs] over-classification by distinguishing between "how many ways to solve" vs "what is the query's logical structure". v2's decision framework should provide more consistent, testable reasoning.
