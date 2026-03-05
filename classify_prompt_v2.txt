@@ -7,21 +7,21 @@ IMPORTANT: You must CLOSE all tags properly.
 
 1. `<solution_space_exhaustion>`:
 
-* **EVALUATE PATH MULTIPLICITY**: Analyze if the query naturally has one path or multiple paths. Do not invent contrived paths if the standard solution is strictly linear.
-* **If Single Path**: Explicitly state "Path A: Direct Resolution" and explain why there are no other meaningful ways to solve it.
-* **If Multiple Paths**: List each valid approach (Path A, Path B...). Specify: (a) core methodology, (b) required knowledge domains, (c) key intermediate milestones, (d) final resolution.
-* **Cross-Path Analysis**: If there are multiple paths, identify if they share ANY intermediate steps or constraints. Distinguish between sharing ONLY the final answer vs sharing steps in between.
+* **EVALUATE PATH MULTIPLICITY**: Analyze if the query naturally has one path or multiple paths. **CRITICALLY: Be aggressive in pruning artificial paths.** Most programming bug fixes, straightforward proofs, step-by-step logic puzzles, or basic science questions are naturally solved via a single linear chain of thought. Do not invent contrived paths if the standard solution is linear.
+* **If Single Path**: Explicitly state "Path A: Direct Resolution" and explain why there are no other completely distinct, non-trivial ways to solve it.
+* **If Multiple Paths**: List only valid, fundamentally structurally different approaches (Path A, Path B...). For each, specify: (a) core methodology, (b) required knowledge domains, (c) key intermediate milestones, (d) final resolution.
+* **Cross-Path Analysis**: If there are multiple paths, identify if they share ANY significant intermediate steps or constraints. Distinguish between sharing ONLY the final answer (Divergent) vs sharing critical operational steps in between (Composite). Trivial overlaps (e.g. defining `x`) do not count.
 * **Multi-Question Detection**:
   - Test 1: Does this query ask 2+ questions that could be answered by completely separate research papers? (If YES → Concurrent)
   - Test 2: Is one part just context (code/data/narrative) for a single question? (If YES → NOT Concurrent)
-  - Test 3: Are they sequential (part B requires part A)? (If YES → NOT Concurrent)
+  - Test 3: Are they sequential (part B strictly requires part A's answer)? (If YES → NOT Concurrent)
 `</solution_space_exhaustion>`
 
 2. `<logical_supergraph_construction>`:
 
 * Construct the Query Logical Super-Graph G = (V, E) by integrating all paths from Step 1.
-* Node (V) = Objective facts, states, intermediate variables, or outcomes.
-* Edge (E) = Causal links, logical implications, or transformation mechanisms.
+* Node (V) = Objective facts, states, major intermediate variables/conclusions, or outcomes.
+* Edge (E) = Causal links, logical implications, or major transformation mechanisms.
 * **Known Sub-graph (Explicit)**: Extract conditions directly stated in the user query.
 `<known_nodes>`
 `<node id="V_start1">explicitly given fact</node>`
@@ -29,14 +29,14 @@ IMPORTANT: You must CLOSE all tags properly.
 `<known_edges>`
 `<edge id="E_known1" source="V_start1" target="V_x">stated relationship</edge>`
 `</known_edges>`
-* **Potential Sub-graph**: Map all additional nodes and edges for paths in Step 1.
-* **NODE UNIQUENESS RULE**: Merge identical intermediate or final states into shared nodes.
+* **Potential Sub-graph**: Map all additional major nodes and edges for paths in Step 1.
+* **NODE UNIQUENESS RULE**: Merge identical significant intermediate or final states into shared nodes.
 * **STRUCTURAL ANALYSIS**: Count:
   - Starting Nodes (unified or multiple independent?)
   - Ending Nodes (unified or multiple independent?)
-  - Shared Intermediate Nodes (do multiple paths pass through the exact same intermediate logic node?)
+  - Shared Intermediate Nodes (do multiple paths strictly pass through the exact same complex intermediate logical state?)
 `<potential_nodes>`
-`<node id="V_intermediate_shared">common intermediate step</node>`
+`<node id="V_intermediate_shared">major common intermediate step</node>`
 `<node id="V_target_shared">identical final outcome</node>`
 `</potential_nodes>`
 `<potential_edges>`
@@ -48,25 +48,25 @@ IMPORTANT: You must CLOSE all tags properly.
 
 3. `<topology_reasoning>`:
 
-* Analyze the super-graph structure from Step 2. Follow this order strictly.
+* Analyze the super-graph structure from Step 2. Follow this order strictly. Most queries fall into Single or Concurrent. You must have strong evidence to classify as Divergent or Composite.
 
 * **[Concurrent Graphs]** - MULTIPLE INDEPENDENT QUESTIONS:
-  - 2+ disconnected sub-graphs. Different starts, different ends, NO shared nodes.
+  - 2+ completely disconnected sub-graphs. Different starts, different ends, NO shared nodes.
   - "What is 2+2? Also, what's the weather in Tokyo?"
 
 * **[Single Graph]** - ONE LINEAR CHAIN:
   - Only ONE valid solving method identified in Step 1. One start → one linear sequence → one end. No branching.
-  - Simple factual recall, direct linear calculations, or standard unambiguous debugging fixes.
+  - Simple factual recall, direct linear calculations, step-by-step logic, standard unambiguous debugging fixes, or sequential tasks.
 
-* **[Divergent Graphs]** - SAME START/END, DIFFERENT MIDDLES:
-  - Multiple valid methods exist. Exactly one start node, exactly one end node, but ZERO shared intermediate nodes.
+* **[Divergent Graphs]** - SAME START/END, COMPLETELY DIFFERENT MIDDLES:
+  - Multiple valid methods exist. Exactly one start node, exactly one end node, but absolutely ZERO shared major intermediate nodes.
   - The methods branch at the start, take completely disjoint paths, and only meet at the final answer.
   - "Prove theorem X using pure geometry OR pure algebra" (where the intermediate steps have zero overlap).
 
-* **[Composite Graphs]** - SHARED INTERMEDIATES / HYBRIDS:
-  - Multiple methods exist, and they share AT LEAST ONE intermediate node before the end.
-  - The methods share constraints, data preprocessing steps, or sub-routines.
-  - Most complex math or coding problems where different approaches still share variable setup or logic blocks.
+* **[Composite Graphs]** - SHARED SIGNIFICANT INTERMEDIATES:
+  - Multiple distinct methods exist, and they genuinely share AT LEAST ONE major intermediate node before the end.
+  - The methods share critical constraints, massive data preprocessing steps, or complex sub-routines. Trivial shared context does NOT make it Composite.
+  - Complex math or system design problems where different approaches still share massive variable setup or logic blocks.
 
 * Provide explicit justification linking back to the graph structural counts. Explain specifically whether intermediate nodes were shared or distinct.
 `</topology_reasoning>`
@@ -79,6 +79,6 @@ IMPORTANT: You must CLOSE all tags properly.
 * [Divergent Graphs]
 * [Composite Graphs]
 * [Unclassifiable]
-Example: `<classification_result>[Composite Graphs]</classification_result>`
+Example: `<classification_result>[Your Categorization]</classification_result>`
 
 the query is:

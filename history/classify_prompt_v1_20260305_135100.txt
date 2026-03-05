@@ -7,11 +7,11 @@ IMPORTANT: You must CLOSE all tags properly.
 
 1. `<solution_space_exhaustion>`:
 
-* **EVALUATE PATH MULTIPLICITY**: Determine if the query naturally has one path or multiple paths. **CRITICAL: DO NOT overcomplicate. Most standard questions, factual recall, simple math, and direct code fixes are strictly ONE path.** Do not invent contrived or "alternative" paths if the standard solution is strictly linear.
-* **If Single Path**: Explicitly state "Path A: Direct Resolution" and explain why there are no other meaningful, fundamentally different, non-contrived ways to solve the problem.
-* **If Multiple Paths**: List each distinct path with a label (e.g., Path A: Empirical derivation; Path B: First-principles calculation; Path C: Historical comparative analysis). Only list paths that use fundamentally different mathematical or logical mechanisms.
+* **EVALUATE PATH MULTIPLICITY**: Determine if the query naturally has one path or multiple paths. Do not invent contrived paths if the standard solution is strictly linear.
+* **If Single Path**: Explicitly state "Path A: Direct Resolution" and explain why there are no other meaningful, non-contrived ways to solve the problem.
+* **If Multiple Paths**: List each distinct path with a label (e.g., Path A: Empirical derivation; Path B: First-principles calculation; Path C: Historical comparative analysis).
 * For EACH path, briefly define: (a) required background knowledge, (b) intermediate logical steps, (c) expected final outcome.
-* **Identify Overlaps**: Explicitly note if different paths share common intermediate steps (excluding the start and end nodes). Trivial commonalities like "reading the prompt" or "defining variables" DO NOT count as shared intermediate steps.
+* **Identify Overlaps**: Explicitly note if different paths share common intermediate steps (excluding the start and end nodes).
 * **Multi-Question Detection**: Check if the query contains 2+ SEMANTICALLY INDEPENDENT questions. Apply these tests:
   - **Independence Test**: Can each question be answered completely without referencing the other? If YES → Concurrent indicator.
   - **Context Test**: Is one part providing context/background for the other (e.g., code snippet + question)? If YES → NOT independent.
@@ -34,7 +34,7 @@ IMPORTANT: You must CLOSE all tags properly.
 * **NODE UNIQUENESS ANALYSIS**: Count:
   - Starting nodes: One unified start vs multiple independent starts?
   - Ending nodes: One unified end vs multiple independent ends?
-  - Intermediate nodes: Are they genuinely shared across paths, or completely unique to individual paths?
+  - Intermediate nodes: Are they shared across paths, or unique to individual paths?
 `<potential_nodes>`
 `<node id="V_target_shared">required identical end state</node>`
 `<node id="V_intermediate_shared">shared intermediate logic</node>`
@@ -58,20 +58,20 @@ IMPORTANT: You must CLOSE all tags properly.
   - If TRUE → [Concurrent Graphs]
 
   **STEP 2 - SINGLE GRAPH CHECK** (One Linear Chain):
-  - Is there genuinely ONLY ONE viable, standard solving method? Did Step 1 yield only one path because other paths would be forced or artificial?
+  - Is there genuinely ONLY ONE viable, direct solving method? Did Step 1 yield only one path?
   - Required Structure: One starting node → one sequence of intermediates → one ending node. No branching.
-  - TRUE Examples: Factual recall ("What is the capital of France?"), straightforward code fixes with a single standard solution, linear step-by-step derivations.
+  - TRUE Examples: Factual recall ("What is the capital of France?"), straightforward code fixes with a single standard solution, linear derivations.
   - If TRUE → [Single Graph]
 
   **STEP 3 - DIVERGENT GRAPHS CHECK** (Multiple Methods, ZERO Shared Intermediates):
-  - Do multiple valid paths exist that share the EXACT same start and end, but have ZERO shared intermediate steps?
+  - Do multiple paths exist that share the EXACT same start and end, but have ZERO shared intermediate steps?
   - Required Structure: Branches out from start, takes completely independent paths, converges ONLY at the final answer. No shared sub-routines or intermediate logic.
-  - TRUE Example: A math problem solved via pure geometry OR pure algebra, with absolutely no overlapping steps in between.
+  - TRUE Example: A math problem solved via pure geometry OR pure algebra, with no overlapping steps in between.
   - If TRUE → [Divergent Graphs]
 
-  **STEP 4 - COMPOSITE GRAPHS** (Multiple Methods WITH Genuine Shared Intermediates):
-  - Do multiple distinct paths exist that share AT LEAST ONE significant intermediate node (a shared non-trivial constraint, complex sub-routine, or intermediate calculation bottleneck) before reaching the end?
-  - TRUE Example: Two coding algorithms that share the exact same complex data parsing loop before diverging and reconverging.
+  **STEP 4 - COMPOSITE GRAPHS** (Multiple Methods WITH Shared Intermediates):
+  - Do multiple paths exist that share AT LEAST ONE intermediate node (a shared constraint, sub-routine, or intermediate calculation) before reaching the end?
+  - TRUE Example: Two coding algorithms that share the same data parsing step before diverging and reconverging.
   - If TRUE → [Composite Graphs]
 
 * Provide explicit reasoning based on the presence/absence of shared *intermediate* nodes.
@@ -85,6 +85,6 @@ IMPORTANT: You must CLOSE all tags properly.
 * [Divergent Graphs]
 * [Composite Graphs]
 * [Unclassifiable]
-Example: `<classification_result>[Your Chosen Category]</classification_result>`
+Example: `<classification_result>[Composite Graphs]</classification_result>`
 
 the query is:

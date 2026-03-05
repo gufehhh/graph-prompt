@@ -1,35 +1,29 @@
-## Iteration Log - Neural Query Topology Classification
+# Iteration History
 
-### [2026-03-05 13:20] Iteration Analysis - Results from results_20260305_170654
+## Key Changes from Historical Iterations
+*(Awaiting more data to populate historical trends)*
 
-**Previous Run Analysis:**
-- **v1 Parse Success Rate**: 100% (64/64)
-- **v2 Parse Success Rate**: 100% (64/64)
-- **Classification Distribution**: Both v1 and v2 classified 100% of queries as [Composite Graphs]. 
+## Current Iteration: 2026-03-05 13:51:00 UTC
 
-**Identified Failure Patterns & Root Cause:**
-Both v1 and v2 STILL classified 100% of queries as [Composite Graphs]. This indicates a persistent bias where the LLM is forced into generating a Composite Graph topology.
-The core issues lie in the interaction between stages:
-1. **Forced Multiplicity (Stage 1)**: The prompt heavily implies that multiple paths *should* exist for almost every query. When the LLM forces multiple contrived paths for a simple query, it artificially creates a complex graph.
-2. **Endpoint Convergence Confusion (Stage 2 & 3)**: If multiple paths to solve a problem exist, they naturally converge at the final answer (the same end node). The previous prompts did not clearly distinguish between sharing *only* the start/end nodes (which should be Divergent) versus sharing *intermediate* nodes (which makes it Composite).
-3. **Overly Broad Composite Definition**: By defining Composite as having "convergent endpoints" or just any shared node, almost any multi-path solution to a single question defaults to Composite.
+### Identified Failure Patterns / Issue Characteristics
+Based on the results from `results_20260305_170654`:
+* `v1` and `v2` both achieved 100% parsing success rates across 64 queries.
+* **CRITICAL ISSUE:** The LLM classified **100%** of all 64 queries across 12 different datasets (math, code, science, etc.) as `[Composite Graphs]`.
+* **Zero instances** of `[Single Graph]`, `[Concurrent Graphs]`, or `[Divergent Graphs]` were generated.
+* The prompts fail to properly penalize over-engineering or correctly guide the model to recognize simpler (Single) or completely disconnected (Concurrent/Divergent) structures. The model defaults to finding some trivial "shared intermediate" state to force a Composite classification.
+* The instruction formatting in both prompts, particularly the `<topology_reasoning>` sections, are formatted in a way that the model might be interpreting the `<classification_result>[Composite Graphs]</classification_result>` example at the end as an absolute template to copy rather than an example.
+* In `v1`, the decision tree instructions might be too weak to override the model's tendency to over-complicate graphs.
 
-**Prompt Changes Made:**
+### Targeted Modifications
 
-**v1 & v2 Changes (4-Stage tweaks):**
-- `<solution_space_exhaustion>`: 
-  - RELAXED the forced multiplicity constraint. Added explicit instructions: "Determine if the query naturally has one path or multiple paths. Do not invent contrived paths if the standard solution is strictly linear."
-  - Allowed the LLM to explicitly state "Path A: Direct Resolution" if only one meaningful path exists.
-  - Added "Cross-Path Analysis" to explicitly identify if multiple paths share *intermediate* steps, explicitly distinguishing this from sharing *only* the final answer.
-- `<logical_supergraph_construction>`:
-  - Clarified the NODE UNIQUENESS RULE: Instructed to count whether shared nodes are *intermediate* nodes, or just the unified start/end nodes.
-- `<topology_reasoning>`:
-  - Completely rewrote the logical definitions to strictly differentiate based on *intermediate* nodes.
-  - **[Single Graph]**: Clarified that if Stage 1 yielded only one path, it must be a Single Graph.
-  - **[Divergent Graphs]**: Explicitly defined as having multiple methods that share the EXACT same start and end, but have ZERO shared intermediate steps. 
-  - **[Composite Graphs]**: Explicitly redefined to require that multiple paths share AT LEAST ONE *intermediate* node before reaching the end.
+**v1 modifications:**
+1. **`<solution_space_exhaustion>`:** Added a strict penalty against over-complicating simple queries. Enforced that straightforward problems must only have ONE path.
+2. **`<logical_supergraph_construction>`:** Emphasized that trivial commonalities (e.g., "reading the question") do not count as shared intermediate nodes.
+3. **`<topology_reasoning>`:** Restructured the decision tree to make Single Graph and Concurrent Graphs the absolute primary checks, requiring strict proof to move to Divergent/Composite.
+4. **`<classification_result>`:** Removed the hardcoded `[Composite Graphs]` example, replacing it with a placeholder `[Selected Category]` to prevent blind copying.
 
-**Expected Improvement:**
-- Maintain 100% parse success rate.
-- Break the 100% [Composite Graphs] bias.
-- See a natural emergence of [Single Graph] for straightforward queries and [Divergent Graphs] for queries with completely distinct solving methods.
+**v2 modifications:**
+1. **`<solution_space_exhaustion>`:** Instructed the model to ruthlessly prune redundant or highly similar paths, focusing only on fundamentally different mathematical/logical approaches.
+2. **`<logical_supergraph_construction>`:** Clarified the definition of a "shared intermediate node" to exclude basic logical setups, forcing a higher threshold for Composite Graph classification.
+3. **`<topology_reasoning>`:** Refined the definitions of Single, Divergent, and Composite. Added a specific warning against classifying everything as Composite simply because they share a starting state.
+4. **`<classification_result>`:** Removed the hardcoded `[Composite Graphs]` example, replacing it with a generic placeholder.

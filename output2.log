@@ -1,0 +1,19 @@
+========== 开始加载并混合数据集 (共 12 个文件) ==========
+- bright_robotics_queries.jsonl: 总量 101, 抽样 5
+- bright_leetcode_queries.jsonl: 总量 142, 抽样 7
+- bright_stackoverflow_queries.jsonl: 总量 117, 抽样 5
+- bright_economics_queries.jsonl: 总量 103, 抽样 5
+- bright_psychology_queries.jsonl: 总量 101, 抽样 5
+- bright_biology_queries.jsonl: 总量 103, 抽样 5
+- bright_theoremqa_theorems_queries.jsonl: 总量 76, 抽样 3
+- bright_earth_science_queries.jsonl: 总量 116, 抽样 5
+- bright_aops_queries.jsonl: 总量 111, 抽样 5
+- bright_pony_queries.jsonl: 总量 112, 抽样 5
+- bright_theoremqa_questions_queries.jsonl: 总量 194, 抽样 9
+- bright_sustainable_living_queries.jsonl: 总量 108, 抽样 5
+
+[OK] 数据集混合完成，全局抽样数据总量: 64
+
+[DIR] 已创建主输出文件夹: results_20260305_213932
+
+>>> 开始使用 [classify_prompt_v1.txt] 并发处理全局混合数据集 <<<
