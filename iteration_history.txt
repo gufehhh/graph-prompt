@@ -200,3 +200,20 @@ BOTH PROMPTS:
 - Added extensive TRUE/FALSE examples for each category
 - Implemented strict decision tree that must be followed in order
 - Forced explicit counting and analysis of graph structure before classification
+
+[2026-03-05 12:21:00] Iteration Analysis - Results from results_20260305_170654
+
+FAILURE PATTERN IDENTIFIED: Both v1 and v2 STILL classified 100% of queries (64/64) as [Composite Graphs].
+This indicates that the previous attempt to reduce the Composite bias was completely ineffective. The prompt is forcing the LLM into a trap:
+1. In Stage 1, it DEMANDS multiple solution paths for almost every query ("Minimum Path Requirement", "MANDATORY EXHAUSTION").
+2. In Stage 2, it demands merging of identical final states ("merge identical intermediate or final states").
+3. In Stage 3, if paths share ANY node (including the start or end node), it often defaults to Composite, or the strong explicit instruction to generate multiple paths that converge makes it look exactly like a Composite Graph.
+
+ROOT CAUSE: The structural definitions are conflicting. If a query is truly a Single Graph query (e.g. a simple question with only one realistic way to solve it), forcing the LLM to invent 3 paths in Stage 1 guarantees it will fail the Single Graph test in Stage 3. Furthermore, most "multiple approaches" to a single problem will naturally converge on the final answer, making them look like a Composite Graph. The definition of Composite Graph is currently too broad ("convergent endpoints").
+
+FIX STRATEGY:
+1. RELAX the "MANDATORY EXHAUSTION" constraint. Allow the LLM to explicitly state if a problem is strictly linear with no meaningful alternatives in Stage 1.
+2. REDEFINE COMPOSITE VS DIVERGENT: A problem with multiple independent ways to solve it that converge ONLY at the final answer should lean towards Divergent if the intermediate steps are distinct.
+3. FIX COMPOSITE BROADNESS: Composite should specifically require shared *intermediate* steps, not just shared starts and ends.
+4. Strengthen SINGLE GRAPH definition to allow it when the LLM determines in Stage 1 that only one path is realistic without fabricating nonsense paths.
+
