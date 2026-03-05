@@ -11,13 +11,7 @@ IMPORTANT: You must CLOSE all tags properly.
 * List each distinct path with a label (e.g., Path A: Empirical derivation; Path B: First-principles calculation; Path C: Historical comparative analysis).
 * For EACH path, briefly define: (a) required background knowledge, (b) intermediate logical steps, (c) expected final outcome.
 * **Identify Overlaps and Intersections**: Explicitly note if different paths share common intermediate steps, constraints, or converge on the exact same final outcome. This is crucial for accurate topology classification.
-* **Minimum Path Requirement**: Unless the query is trivially simple (e.g., "What is 2+2?"), you should identify at least 2-3 distinct solving paths. A single-path analysis usually indicates insufficient exhaustion.
-* **Multi-Question Detection**: Check if the query contains 2+ SEMANTICALLY INDEPENDENT questions (e.g., "What is X? Also, how does Y work?" where X and Y are unrelated topics). If yes, note this explicitly as it indicates Concurrent Graphs.
-* **NOT Independent Questions**: Do NOT count these as separate questions:
-  - Reformulations of the same question ("What is X? In other words, explain X.")
-  - Background context + actual question (code snippet + "why does this fail?")
-  - Problem narrative + single question (long word problem → one answer)
-  - Follow-up clarifications on the same topic ("How does X work? Specifically, what about Y?")
+* **Minimum Path Requirement**: Unless the query is trivially simple, you should identify at least 2-3 distinct solving paths. A single-path analysis usually indicates insufficient exhaustion.
 * This represents the complete solution space before any external document retrieval.
 `</solution_space_exhaustion>`
 
@@ -52,26 +46,12 @@ IMPORTANT: You must CLOSE all tags properly.
 
 * Evaluate the structure of the superimposed super-graph generated in Step 2.
 * **WARNING**: Do NOT default to [Single Graph]. Most non-trivial queries have multiple solving approaches. Only use [Single Graph] for genuinely simple, single-method problems.
-* **Decision Tree (Follow in Order)**:
-  1. **CONCURRENT CHECK**: Does the query contain 2+ SEMANTICALLY INDEPENDENT questions with DIFFERENT starting points AND DIFFERENT ending points?
-     - TRUE Concurrent Example: "What is the capital of France? Also, explain how photosynthesis works." (Unrelated topics, no shared nodes)
-     - NOT Concurrent: "Given X, find Y. What if Z changes?" (Related, shares context)
-     - NOT Concurrent: Code snippet + "Why does this fail?" (Code is context, not a separate question)
-     - NOT Concurrent: Long word problem → single numerical answer (One question with context)
-     - If TRUE Concurrent → [Concurrent Graphs]
-  2. **DIVERGENT CHECK**: Do all paths share EXACT same start AND end points with ZERO shared intermediate nodes?
-     - TRUE Divergent Example: "Prove theorem X using: (a) geometric approach, (b) algebraic approach, (c) combinatorial approach" where each method uses completely different intermediate logic with no overlap.
-     - NOT Divergent: Math problem solvable by multiple methods that share intermediate steps (e.g., all methods need to first define variables) → This is Composite
-     - If TRUE Divergent → [Divergent Graphs]
-  3. **SINGLE CHECK**: Is there genuinely ONLY ONE viable solving method with no alternative approaches?
-     - TRUE Single Example: "What is 2+2?", "Who wrote Hamlet?", "What year did WWII end?"
-     - NOT Single: Any problem requiring derivation, calculation, or reasoning (these have multiple approaches)
-     - If TRUE Single → [Single Graph]
-  4. **DEFAULT**: If none of the above → [Composite Graphs]
-* **COMPOSITE IS MOST COMMON**: Most non-trivial queries are [Composite Graphs] because:
-  - Different solving methods typically share some underlying logic or constraints
-  - Paths branch from common start, share intermediate nodes, and converge on identical end point
-  - Example: Math problems (algebraic vs geometric vs combinatorial methods all share intermediate steps)
+* Determine which structure best represents the TOTALITY of the generated answer space:
+* **[Single Graph]**: A single linked list from start to end. Use ONLY for straightforward, single-logic problems with ONE viable solving method (e.g., simple factual lookup, direct calculation with no alternative approaches). **This should be RARE.**
+* **[Concurrent Graphs]**: Multiple disconnected linked lists with entirely different starting AND ending points. Use for prompts containing 2+ independent, unrelated questions where each forms a separate graph with no shared nodes.
+* **[Divergent Graphs]**: Multiple paths sharing the EXACT same start AND end points, but using completely different intermediate nodes with ZERO overlap. Use for multi-perspective problems where different methods have no shared intermediate steps. **This is also RARE** since most methods share some common logic.
+* **[Composite Graphs]**: A complex interconnected structure (DAG). Use when paths: (a) branch from a common start, (b) INTERSECT at shared intermediate nodes (common sub-routines, identical constraints), OR (c) CONVERGE at a single identical end point. **This is the MOST COMMON category** for non-trivial queries because different solving methods typically share some underlying logic or constraints.
+* **[Unclassifiable]**: Graph construction failed due to extreme ambiguity.
 * Explain your deduction: If paths share intermediate nodes or converge on a single target, explicitly state why this makes it a Composite Graph rather than Single or Divergent.
 `</topology_reasoning>`
 
