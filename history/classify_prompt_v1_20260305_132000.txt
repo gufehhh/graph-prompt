@@ -7,7 +7,7 @@ IMPORTANT: You must CLOSE all tags properly.
 
 1. `<solution_space_exhaustion>`:
 
-* **EVALUATE PATH MULTIPLICITY**: Determine if the query naturally has one path or multiple paths. Do not invent contrived paths if the standard solution is strictly linear.
+* **EVALUATE PATH MULTIPLICITY**: Determine if the query has one clear, direct solution method or if multiple distinct methods exist. Do NOT force multiple paths if only one natural path exists.
 * **If Single Path**: Explicitly state "Path A: Direct Resolution" and explain why there are no other meaningful, non-contrived ways to solve the problem.
 * **If Multiple Paths**: List each distinct path with a label (e.g., Path A: Empirical derivation; Path B: First-principles calculation; Path C: Historical comparative analysis).
 * For EACH path, briefly define: (a) required background knowledge, (b) intermediate logical steps, (c) expected final outcome.

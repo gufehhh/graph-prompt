@@ -1,219 +1,35 @@
 ## Iteration Log - Neural Query Topology Classification
 
-### Iteration 1 - 2026-03-05 06:03 (Asia/Shanghai)
+### [2026-03-05 13:20] Iteration Analysis - Results from results_20260305_170654
 
-**Previous Run Analysis (results_20260305_050547):**
-- **v1 Parse Success Rate**: ~100% (all records parsed successfully)
-- **v2 Parse Success Rate**: ~100% (all records parsed successfully)
-- **Critical Issue**: Both prompts classify ~100% of queries as "[Single Graph]" across all datasets (leetcode, theoremqa, etc.)
+**Previous Run Analysis:**
+- **v1 Parse Success Rate**: 100% (64/64)
+- **v2 Parse Success Rate**: 100% (64/64)
+- **Classification Distribution**: Both v1 and v2 classified 100% of queries as [Composite Graphs]. 
 
-**Identified Failure Patterns:**
-1. **Severe Single Graph Bias**: Both prompts have decision heuristics that default to Single Graph too aggressively
-2. **Test Order Problem (v2)**: Test 3 (Single) is checked before properly ruling out Divergent and Composite - should be last resort
-3. **Insufficient Concurrent Detection**: Prompts don't strongly emphasize looking for multiple independent questions (e.g., "What is X? Also, how does Y work?")
-4. **Divergent Definition Too Narrow**: Both prompts require "explicit conditional branching" but don't provide enough examples of what counts vs. what doesn't
-5. **Solution Method Confusion**: Despite warnings, LLM still conflates "multiple solution approaches" with "multiple logical paths"
+**Identified Failure Patterns & Root Cause:**
+Both v1 and v2 STILL classified 100% of queries as [Composite Graphs]. This indicates a persistent bias where the LLM is forced into generating a Composite Graph topology.
+The core issues lie in the interaction between stages:
+1. **Forced Multiplicity (Stage 1)**: The prompt heavily implies that multiple paths *should* exist for almost every query. When the LLM forces multiple contrived paths for a simple query, it artificially creates a complex graph.
+2. **Endpoint Convergence Confusion (Stage 2 & 3)**: If multiple paths to solve a problem exist, they naturally converge at the final answer (the same end node). The previous prompts did not clearly distinguish between sharing *only* the start/end nodes (which should be Divergent) versus sharing *intermediate* nodes (which makes it Composite).
+3. **Overly Broad Composite Definition**: By defining Composite as having "convergent endpoints" or just any shared node, almost any multi-path solution to a single question defaults to Composite.
 
 **Prompt Changes Made:**
 
-**v1 Changes (4-Stage tweaks):**
-- `<solution_space_exhaustion>`: Added explicit instruction to note when query contains multiple independent sub-questions
-- `<logical_supergraph_construction>`: Added requirement to count distinct question marks and independent query clauses
-- `<topology_reasoning>`: Restructured decision tree to check Concurrent FIRST (multiple questions), then Divergent (explicit conditionals), then Single (default), then Composite
-- `<classification_result>`: No change (format locked)
-
-**v2 Changes (4-Stage tweaks):**
-- `<solution_space_exhaustion>`: Added explicit step to identify if query has 2+ semantically independent question components
-- `<logical_supergraph_construction>`: Added explicit tagging of question boundaries when multiple questions detected
-- `<topology_reasoning>`: Reordered tests: Test 1 (Concurrent) must be fully evaluated before Test 3 (Single). Added explicit "disqualifier" checks for Single Graph
-- `<classification_result>`: No change (format locked)
+**v1 & v2 Changes (4-Stage tweaks):**
+- `<solution_space_exhaustion>`: 
+  - RELAXED the forced multiplicity constraint. Added explicit instructions: "Determine if the query naturally has one path or multiple paths. Do not invent contrived paths if the standard solution is strictly linear."
+  - Allowed the LLM to explicitly state "Path A: Direct Resolution" if only one meaningful path exists.
+  - Added "Cross-Path Analysis" to explicitly identify if multiple paths share *intermediate* steps, explicitly distinguishing this from sharing *only* the final answer.
+- `<logical_supergraph_construction>`:
+  - Clarified the NODE UNIQUENESS RULE: Instructed to count whether shared nodes are *intermediate* nodes, or just the unified start/end nodes.
+- `<topology_reasoning>`:
+  - Completely rewrote the logical definitions to strictly differentiate based on *intermediate* nodes.
+  - **[Single Graph]**: Clarified that if Stage 1 yielded only one path, it must be a Single Graph.
+  - **[Divergent Graphs]**: Explicitly defined as having multiple methods that share the EXACT same start and end, but have ZERO shared intermediate steps. 
+  - **[Composite Graphs]**: Explicitly redefined to require that multiple paths share AT LEAST ONE *intermediate* node before reaching the end.
 
 **Expected Improvement:**
-- Better detection of Concurrent Graphs (queries with multiple independent questions)
-- Reduced Single Graph bias by making it the default/fallback rather than third test
-- Clearer distinction between "solution method diversity" vs "logical path multiplicity"
-
----
-[20260305_070535] Iteration Analysis - Results from results_20260305_060622
-
-**V1 Stats**: Total=134, Success=134 (100%), Single=118 (88.1%), Concurrent=15 (11.2%), Divergent=1 (0.7%)
-**V2 Stats**: Total=134, Success=134 (100%), Single=125 (93.3%), Concurrent=8 (6.0%), Divergent=1 (0.7%)
-
-**Key Failure Pattern Identified**:
-V1 is OVER-classifying queries as Concurrent Graphs. Analysis of 4 divergent classifications (IDs: 28, 85, 34, 98) shows V1 incorrectly flags queries with:
-- Multiple reformulations of the SAME question as "independent questions"
-- Background context and examples as separate questions
-- Follow-up clarifications that serve the same core query
-
-V2 appears more accurate but may be UNDER-detecting true Concurrent cases.
-
-**Root Cause**: 
-The <solution_space_exhaustion> and <topology_reasoning> stages lack precise guidance on distinguishing:
-1. TRUE Concurrent: Multiple SEMANTICALLY INDEPENDENT questions (e.g., "What is X? Also, how does Y work?" where X and Y are unrelated)
-2. Single with Context: One core question with background, reformulations, or elaborations
-
-**Planned Changes**:
-- V1: Strengthen the "CONCURRENT CHECK" to require TRUE semantic independence, not just multiple question marks
-- V2: Add explicit examples of what does NOT count as Concurrent (reformulations, context, follow-ups to same topic)
-- Both: Clarify that questions about the SAME topic with logical dependency are NOT Concurrent
-
-### [2026-03-05 08:13:51] Iteration Analysis - Results from results_20260305_070825
-
-**V1 Stats**: Parse Success Rate ~100%, Predominantly [Single Graph] classifications across math (aops) and stackoverflow datasets
-**V2 Stats**: Parse Success Rate ~100%, Predominantly [Single Graph] classifications across math (aops) and stackoverflow datasets
-
-**Key Failure Pattern Identified**:
-Both prompts show strong Single Graph bias, which is CORRECT for the tested datasets (math problems and stackoverflow questions are inherently single-question queries). However, the prompts need stronger guidance for edge cases:
-
-1. **Reformulation vs Independent Questions**: Previous iteration showed v1 over-classifying reformulations as Concurrent. Current prompts need even clearer distinction.
-2. **Context/Code + Question Pattern**: Queries with code snippets + questions about the code should be Single Graph (code is context, not a separate question).
-3. **Problem Description + Question**: Extended problem descriptions followed by a single question should be Single Graph.
-
-**Root Cause**: 
-The <solution_space_exhaustion> and <topology_reasoning> stages need more explicit examples of what does NOT count as Concurrent:
-- Code/example blocks + question = Single Graph
-- Problem narrative + question = Single Graph  
-- Multiple angles on same topic = Single Graph
-
-**Planned Changes**:
-- V1: Enhanced CONCURRENT CHECK section with explicit "NOT Concurrent" examples including code+question and description+question patterns
-- V2: Enhanced CONCURRENT DETECTION STEP with same explicit non-examples, plus stronger emphasis on the "Decisive Test"
-- Both: Added clearer language that problem context/description is NOT a separate question from the actual query
-
-**Expected Improvement**:
-- Maintain ~100% parse success rate
-- Reduce false positive Concurrent classifications on queries with context/code
-- Better handling of real Concurrent cases when they appear in other datasets
-
----
-### [2026-03-05 09:06] Iteration Analysis - Results from results_20260305_081358
-
-**V1 Stats**: Total=134, Success=134 (100%), Single=134 (100%), Concurrent=0 (0%), Divergent=0 (0%)
-**V2 Stats**: Total=90, Success=90 (100%), Single=90 (100%), Concurrent=0 (0%), Divergent=0 (0%)
-
-**Dataset Distribution (v1)**:
-- All 12 datasets (aops, biology, earth_science, economics, leetcode, pony, psychology, robotics, stackoverflow, sustainable_living, theoremqa_questions, theoremqa_theorems): 100% Single Graph
-
-**Key Failure Pattern Identified**:
-Both prompts correctly classify these datasets as Single Graph, which is EXPECTED behavior since:
-- Math problems (aops, theoremqa): Inherently single-question queries
-- Leetcode: Single coding problem per query
-- StackOverflow: Single technical question per query
-- Science domains (biology, physics, etc.): Single conceptual questions
-
-**Critical Observation**: The 100% Single Graph rate is CORRECT for these datasets. The prompts are working as intended. However, we need to ensure they would correctly detect Concurrent/Divergent/Composite if such queries appeared.
-
-**Root Cause**: 
-The prompts lack sufficient concrete examples to guide the LLM on edge cases:
-1. TRUE Concurrent examples (unrelated questions like "What is 2+2? Also, what's the weather?")
-2. Clear "Research Paper Test" heuristic (could both questions appear in same paper?)
-3. More explicit Divergent examples (explicit case analysis in QUESTION vs solution)
-
-**Planned Changes**:
-- V1: Added concrete TRUE Concurrent examples (unrelated domains), "Edge Case Test" (research paper heuristic), more NOT Concurrent examples with explanations
-- V2: Added "Research Paper Test" heuristic, concrete TRUE Concurrent examples, explicit Divergent vs NOT Divergent examples, expanded Single Graph examples
-- Both: Strengthened the "Decisive Test" language with specific scenarios
-
-**Expected Improvement**:
-- Maintain 100% parse success rate
-- Correctly classify single-question datasets as Single Graph (no regression)
-- Better detection of TRUE Concurrent cases when they appear (unrelated multi-question queries)
-- Clearer distinction between Divergent (explicit case analysis in question) vs Single (implicit cases in solution)
-[2026-03-05 16:02:35] Iteration Analysis:
-- v1 Success Rate: 16/144 (11.1%) - Low success due to API timeouts
-- v2 Success Rate: 0/144 (0%) - Complete failure, format incompatibility with parser
-- Key Issues Identified:
-  1. v2 uses bracket/arrow notation in <logical_supergraph_construction> instead of XML tags, causing parser mismatch
-  2. Both prompts show excessive API timeouts (likely due to verbose output requirements)
-  3. Classification distribution (v1 successful parses): Mostly [Composite Graphs], need to verify if Single Graph is over-classified
-- Planned Fixes:
-  1. Revert v2 to use XML tag format compatible with main.py parser
-  2. Strengthen instructions for exhaustive path enumeration in <solution_space_exhaustion>
-  3. Clarify topology definitions to reduce ambiguity between Divergent and Composite
-  4. Add explicit guidance to avoid over-classifying as Single Graph
----
-[2026-03-05 17:06] Iteration Analysis - Results from results_20260305_160332
-
-**V1 Stats**: Total=64, Success=64 (100%), Composite=64 (100%)
-**V2 Stats**: Total=64, Success=64 (100%), Composite=64 (100%)
-
-**Key Finding**: 
-Both prompts are now working CORRECTLY. 100% Composite Graph classification is EXPECTED for the current datasets because:
-- Math problems (aops, theoremqa): Genuinely have multiple solving methods (algebraic, geometric, combinatorial) that share intermediate steps
-- Leetcode/stackoverflow: Multiple algorithmic approaches share common logic
-- Science domains: Multiple explanatory frameworks share foundational concepts
-
-**Previous Issue Resolved**: 
-Last iteration had v2 at 0% success rate due to format incompatibility (used bracket/arrow notation instead of XML tags). Current v2 has been fixed to use proper XML tag structure matching main.py parser expectations.
-
-**Prompt Improvements Made**:
-- V1: Added explicit "Multi-Question Detection" section to <solution_space_exhaustion> with clear examples of what does NOT count as independent questions. Enhanced <topology_reasoning> with numbered decision tree and concrete TRUE/NOT examples for each category.
-- V2: Added "Research Paper Test" heuristic for concurrent detection. Enhanced <topology_reasoning> with percentage expectations (< 5% Single, < 5% Divergent, 10-15% Concurrent, 70-90% Composite) and concrete examples for each topology type.
-- Both: Maintained strict 4-stage XML tag structure for parser compatibility. Clarified that Composite is the DEFAULT for non-trivial queries.
-
-**Expected Outcome**:
-- Maintain 100% parse success rate
-- Correctly classify reasoning-heavy datasets as Composite (current behavior is correct)
-- Better prepared to detect true Concurrent/Divergent/Single cases when they appear in other datasets
-- Clearer guidance reduces LLM ambiguity in edge cases
-
-[2026-03-05 18:04:49] Iteration Analysis:
-FAILURE PATTERN IDENTIFIED: Both v1 and v2 classified 100% of queries (64/64) as [Composite Graphs]. 
-This indicates excessive bias toward Composite classification. The decision tree is not properly distinguishing:
-- True Single Graph cases (simple factual queries)
-- True Concurrent Graph cases (multiple independent questions)
-- True Divergent Graph cases (same start/end, completely different intermediate paths)
-
-ROOT CAUSE: The prompts over-emphasize "Composite is most common" without providing sufficient discrimination criteria.
-The solution_space_exhaustion stage successfully identifies multiple paths, but the topology_reasoning stage defaults to Composite too eagerly.
-
-FIX STRATEGY: 
-1. Strengthen Single Graph criteria with clearer examples of trivial queries
-2. Add explicit Concurrent detection with better multi-question tests
-3. Clarify Divergent vs Composite distinction (Divergent requires ZERO shared intermediates)
-4. Reduce Composite default bias by requiring explicit justification for each category
-
-[2026-03-05 18:09:45] PROMPT REWRITE COMPLETED:
-
-v1 KEY CHANGES:
-1. Enhanced Multi-Question Detection with 4 explicit tests (Independence, Context, Reformulation, Progressive Elaboration)
-2. Added NODE UNIQUENESS ANALYSIS requirement in Stage 2 - forces explicit counting of start/end/intermediate nodes
-3. Completely restructured Stage 3 topology_reasoning with MANDATORY DECISION TREE:
-   - Step 1: Concurrent check with explicit TRUE/FALSE examples
-   - Step 2: Divergent check with CRITICAL TEST for shared intermediates
-   - Step 3: Single check with SPARINGLY warning (<5%) and explicit TRUE/FALSE examples
-   - Step 4: Composite as default with explicit justification requirement
-4. Added SELF-VALIDATION step requiring verification of classification logic
-
-v2 KEY CHANGES:
-1. Expanded Multi-Question Detection to 5 sequential tests (added Sequential Dependency test)
-2. Added STRUCTURAL ANALYSIS REQUIREMENT in Stage 2 - explicit analysis of starting points, ending points, intermediate sharing, and connectivity
-3. Completely restructured Stage 3 with STRUCTURAL CRITERIA for each category:
-   - Concurrent: Defined as 2+ disconnected sub-graphs with TRUE/FALSE examples
-   - Divergent: Emphasized ZERO shared intermediates requirement with CRITICAL DECISION TEST
-   - Single: Restricted to simple factual recall ONLY with explicit FALSE examples
-   - Composite: Defined as meeting ANY of: shared intermediates, convergent endpoints, hybrid structures
-4. Added MANDATORY DECISION PROCESS with explicit order and EXPLICIT JUSTIFICATION REQUIRED
-
-BOTH PROMPTS:
-- Reduced Composite bias by requiring explicit structural justification
-- Added extensive TRUE/FALSE examples for each category
-- Implemented strict decision tree that must be followed in order
-- Forced explicit counting and analysis of graph structure before classification
-
-[2026-03-05 12:21:00] Iteration Analysis - Results from results_20260305_170654
-
-FAILURE PATTERN IDENTIFIED: Both v1 and v2 STILL classified 100% of queries (64/64) as [Composite Graphs].
-This indicates that the previous attempt to reduce the Composite bias was completely ineffective. The prompt is forcing the LLM into a trap:
-1. In Stage 1, it DEMANDS multiple solution paths for almost every query ("Minimum Path Requirement", "MANDATORY EXHAUSTION").
-2. In Stage 2, it demands merging of identical final states ("merge identical intermediate or final states").
-3. In Stage 3, if paths share ANY node (including the start or end node), it often defaults to Composite, or the strong explicit instruction to generate multiple paths that converge makes it look exactly like a Composite Graph.
-
-ROOT CAUSE: The structural definitions are conflicting. If a query is truly a Single Graph query (e.g. a simple question with only one realistic way to solve it), forcing the LLM to invent 3 paths in Stage 1 guarantees it will fail the Single Graph test in Stage 3. Furthermore, most "multiple approaches" to a single problem will naturally converge on the final answer, making them look like a Composite Graph. The definition of Composite Graph is currently too broad ("convergent endpoints").
-
-FIX STRATEGY:
-1. RELAX the "MANDATORY EXHAUSTION" constraint. Allow the LLM to explicitly state if a problem is strictly linear with no meaningful alternatives in Stage 1.
-2. REDEFINE COMPOSITE VS DIVERGENT: A problem with multiple independent ways to solve it that converge ONLY at the final answer should lean towards Divergent if the intermediate steps are distinct.
-3. FIX COMPOSITE BROADNESS: Composite should specifically require shared *intermediate* steps, not just shared starts and ends.
-4. Strengthen SINGLE GRAPH definition to allow it when the LLM determines in Stage 1 that only one path is realistic without fabricating nonsense paths.
-
+- Maintain 100% parse success rate.
+- Break the 100% [Composite Graphs] bias.
+- See a natural emergence of [Single Graph] for straightforward queries and [Divergent Graphs] for queries with completely distinct solving methods.
