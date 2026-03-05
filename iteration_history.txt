@@ -119,3 +119,15 @@ The prompts lack sufficient concrete examples to guide the LLM on edge cases:
 - Correctly classify single-question datasets as Single Graph (no regression)
 - Better detection of TRUE Concurrent cases when they appear (unrelated multi-question queries)
 - Clearer distinction between Divergent (explicit case analysis in question) vs Single (implicit cases in solution)
+[2026-03-05 16:02:35] Iteration Analysis:
+- v1 Success Rate: 16/144 (11.1%) - Low success due to API timeouts
+- v2 Success Rate: 0/144 (0%) - Complete failure, format incompatibility with parser
+- Key Issues Identified:
+  1. v2 uses bracket/arrow notation in <logical_supergraph_construction> instead of XML tags, causing parser mismatch
+  2. Both prompts show excessive API timeouts (likely due to verbose output requirements)
+  3. Classification distribution (v1 successful parses): Mostly [Composite Graphs], need to verify if Single Graph is over-classified
+- Planned Fixes:
+  1. Revert v2 to use XML tag format compatible with main.py parser
+  2. Strengthen instructions for exhaustive path enumeration in <solution_space_exhaustion>
+  3. Clarify topology definitions to reduce ambiguity between Divergent and Composite
+  4. Add explicit guidance to avoid over-classifying as Single Graph

@@ -12,7 +12,7 @@ BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 MODEL_NAME = "qwen-max" # 替换为云端实际的模型名称
 
 DATA_DIR = "bright_queries" # 存放原始 JSONL 文件的目录
-SAMPLE_RATIO = 0.1          # 抽样比例
+SAMPLE_RATIO = 0.05          # 抽样比例
 CONCURRENCY_LIMIT = 5       # 并发数
 
 # 要测试的初始 Prompt 文件列表
