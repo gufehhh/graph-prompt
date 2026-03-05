@@ -17,8 +17,6 @@ IMPORTANT: You must CLOSE all tags.
     - Answering question A provides ZERO help for answering question B
     - Each question would require separate, independent research/knowledge to answer
     - The questions have NO logical dependency on each other
-    - Example TRUE Concurrent: "What is 2+2? Also, what is the weather in Tokyo?" → Two unrelated questions
-    - Example TRUE Concurrent: "Explain quantum entanglement. Also, how do I bake a cake?" → Two unrelated domains
   - **NOT Concurrent - Single Graph with Context** (these indicate Single Graph, NOT Concurrent):
     - Multiple reformulations of the SAME question (e.g., "Why no certification? Is there a reason?" — both ask the same thing)
     - Background context, examples, or anecdotes supporting one core question
@@ -26,11 +24,7 @@ IMPORTANT: You must CLOSE all tags.
     - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes it?" — these are the same underlying question)
     - Problem description + specific question (the description is context, not a separate question)
     - Code/example + question about the code (the code is context for one question)
-    - Multi-part questions where parts are logically connected (e.g., "What is X and how does it work?" — understanding X is prerequisite to explaining how it works)
-    - Example NOT Concurrent: "What is the time complexity of quicksort? Also, can you show me the Python implementation?" → Both about quicksort, logically connected
-    - Example NOT Concurrent: "Explain the theory of relativity. What are its main predictions?" → Second question elaborates on the first
   - **Decisive Test**: If you removed sub-question A, would sub-question B still make complete sense AND require completely different knowledge to answer? If NO → NOT Concurrent (it's Single Graph).
-  - **Edge Case Test**: Could both questions appear in the same research paper or textbook chapter? If YES → likely Single Graph (related topics). If NO → likely Concurrent (unrelated topics).
 * This step represents the sum of all potential problem-solving routes, but remember: solution method diversity ≠ topological complexity. Question reformulation diversity ≠ Concurrent Graphs.
 </solution_space_exhaustion>
 
@@ -57,12 +51,7 @@ IMPORTANT: You must CLOSE all tags.
   - **Single Core Question**: Multiple mentions of the same topic, even with different wording = 1 question
   - **True Multiple Questions**: Unrelated topics or logically independent inquiries = N questions
   - **Key Test**: Do all question parts ultimately serve ONE unified answer, or do they require separate independent answers?
-  - **Concrete Examples**:
-    - "What is X? How does X work?" → 1 question (how X works is part of understanding what X is)
-    - "What is X? What is Y?" where X≠Y and unrelated → 2 questions (Concurrent)
-    - "Calculate A. Then calculate B using result from A." → 1 question (B depends on A)
-    - "Calculate A. Also calculate B." where A and B are independent → 2 questions (Concurrent)
-  - **Exception**: If the query is fundamentally nonsensical or lacks minimum context to anchor ANY starting node, output EXACTLY this tag and stop graph construction:
+* *Exception*: If the query is fundamentally nonsensical or lacks minimum context to anchor ANY starting node, output EXACTLY this tag and stop graph construction:
 <error>Graph construction failed due to extreme ambiguity.</error>
 </logical_supergraph_construction>
 
@@ -78,7 +67,6 @@ IMPORTANT: You must CLOSE all tags.
   - Answering question A provides ZERO help for answering question B
   - Each question would require separate, independent research/knowledge
   - Example: "What is the capital of France? Also, explain how photosynthesis works."
-  - Example: "What is 2+2? What is the best programming language?"
 - **NOT Concurrent** (these are Single Graph with context):
   - Multiple reformulations of the same question (e.g., "Why no certification? Is there a reason?")
   - Background context, examples, or anecdotes supporting one core question
@@ -86,24 +74,13 @@ IMPORTANT: You must CLOSE all tags.
   - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes X?")
   - Problem description followed by a question about that description
   - Code snippet + question about the code
-  - Multi-part questions where parts are logically connected (e.g., "What is X and how does it work?")
-  - Example NOT Concurrent: "Explain machine learning. What are the main types of ML algorithms?" → Second elaborates on first
-  - Example NOT Concurrent: "What is the derivative of x^2? Show me the steps." → Steps are part of the answer
 - **Decisive test**: If you removed one sub-question, could you still fully answer the others without any loss AND would the remaining questions still make complete sense? If NO → NOT Concurrent.
-- **Edge Case Test**: Could both questions appear in the same research paper or textbook chapter? If YES → likely Single Graph. If NO → likely Concurrent.
 - If TRUE Concurrent → [Concurrent Graphs]. STOP here.
 
 **Test 2 - Divergent Graphs**:
 - Does the query contain EXPLICIT conditional branching (if/then/else, case analysis, scenario-based forks) where DIFFERENT conditions lead to DIFFERENT answers OR where multiple parallel paths must ALL be evaluated to fully answer?
-- **Key indicators**: "for each case...", "depending on whether...", "if X then A, if Y then B", "compare A and B and explain the differences", "analyze all scenarios where...", "what happens in case A vs case B?"
+- **Key indicators**: "for each case...", "depending on whether...", "if X then A, if Y then B", "compare A and B and explain the differences", "analyze all scenarios where..."
 - **CRITICAL**: "If" in background context ≠ Divergent. Only explicit conditional branching in the QUESTION structure counts. Implicit case analysis in the SOLUTION ≠ Divergent.
-- **Examples of Divergent**:
-  - "If the user is logged in, show their profile. If not, show the login page. What should the system do?"
-  - "For each of the following cases (A, B, C), explain what the output would be."
-  - "Compare and contrast the advantages and disadvantages of approach X vs approach Y." (requires evaluating both branches)
-- **Examples NOT Divergent**:
-  - "How do I handle errors in Python?" (solution may involve if/else, but question doesn't require case analysis)
-  - "What is the time complexity of this algorithm?" (solution may have cases, but question asks for one answer)
 - **Decisive test**: Does the problem statement explicitly require evaluating multiple cases/scenarios/conditions to produce a complete answer? If YES → [Divergent Graphs].
 
 **Test 3 - Single Graph (DEFAULT/FALLBACK)**:
@@ -114,17 +91,11 @@ IMPORTANT: You must CLOSE all tags.
   - Query requires explicit case-by-case evaluation → Divergent
   - Query combines independent questions where at least one has internal branching → Composite
 - **Important**: Multiple reformulations, context, examples, or follow-ups about the SAME topic do NOT disqualify Single Graph.
-- **Examples of Single Graph**:
-  - "What is the capital of France?" → Single
-  - "What is the capital of France? Also, why is it famous?" → Single (both about Paris)
-  - "Solve this equation: 2x + 3 = 7. Show your work." → Single (work is part of the answer)
-  - "Explain photosynthesis. What are the main steps?" → Single (steps elaborate on photosynthesis)
 - If none of the above apply → [Single Graph].
 
 **Test 4 - Composite Graphs**:
 - Is the logical structure a hybrid mixture (e.g., containing both concurrent disconnected components AND divergent parallel paths within those components)?
 - Example: "What is X and how does it work? Also, if Y happens, what would Z be?" → Concurrent (two questions) + Divergent (second question has conditional).
-- Example: "Explain machine learning and deep learning. For each, compare supervised vs unsupervised approaches." → Concurrent (ML + DL) + Divergent (each has comparison)
 - If YES → [Composite Graphs].
 
 **Test 5 - Unclassifiable**:

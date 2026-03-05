@@ -84,3 +84,38 @@ The <solution_space_exhaustion> and <topology_reasoning> stages need more explic
 - Maintain ~100% parse success rate
 - Reduce false positive Concurrent classifications on queries with context/code
 - Better handling of real Concurrent cases when they appear in other datasets
+
+---
+### [2026-03-05 09:06] Iteration Analysis - Results from results_20260305_081358
+
+**V1 Stats**: Total=134, Success=134 (100%), Single=134 (100%), Concurrent=0 (0%), Divergent=0 (0%)
+**V2 Stats**: Total=90, Success=90 (100%), Single=90 (100%), Concurrent=0 (0%), Divergent=0 (0%)
+
+**Dataset Distribution (v1)**:
+- All 12 datasets (aops, biology, earth_science, economics, leetcode, pony, psychology, robotics, stackoverflow, sustainable_living, theoremqa_questions, theoremqa_theorems): 100% Single Graph
+
+**Key Failure Pattern Identified**:
+Both prompts correctly classify these datasets as Single Graph, which is EXPECTED behavior since:
+- Math problems (aops, theoremqa): Inherently single-question queries
+- Leetcode: Single coding problem per query
+- StackOverflow: Single technical question per query
+- Science domains (biology, physics, etc.): Single conceptual questions
+
+**Critical Observation**: The 100% Single Graph rate is CORRECT for these datasets. The prompts are working as intended. However, we need to ensure they would correctly detect Concurrent/Divergent/Composite if such queries appeared.
+
+**Root Cause**: 
+The prompts lack sufficient concrete examples to guide the LLM on edge cases:
+1. TRUE Concurrent examples (unrelated questions like "What is 2+2? Also, what's the weather?")
+2. Clear "Research Paper Test" heuristic (could both questions appear in same paper?)
+3. More explicit Divergent examples (explicit case analysis in QUESTION vs solution)
+
+**Planned Changes**:
+- V1: Added concrete TRUE Concurrent examples (unrelated domains), "Edge Case Test" (research paper heuristic), more NOT Concurrent examples with explanations
+- V2: Added "Research Paper Test" heuristic, concrete TRUE Concurrent examples, explicit Divergent vs NOT Divergent examples, expanded Single Graph examples
+- Both: Strengthened the "Decisive Test" language with specific scenarios
+
+**Expected Improvement**:
+- Maintain 100% parse success rate
+- Correctly classify single-question datasets as Single Graph (no regression)
+- Better detection of TRUE Concurrent cases when they appear (unrelated multi-question queries)
+- Clearer distinction between Divergent (explicit case analysis in question) vs Single (implicit cases in solution)
