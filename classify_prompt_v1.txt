@@ -12,12 +12,13 @@ IMPORTANT: You must CLOSE all tags properly.
 * For EACH path, briefly define: (a) required background knowledge, (b) intermediate logical steps, (c) expected final outcome.
 * **Identify Overlaps and Intersections**: Explicitly note if different paths share common intermediate steps, constraints, or converge on the exact same final outcome. This is crucial for accurate topology classification.
 * **Minimum Path Requirement**: Unless the query is trivially simple (e.g., "What is 2+2?"), you should identify at least 2-3 distinct solving paths. A single-path analysis usually indicates insufficient exhaustion.
-* **Multi-Question Detection**: Check if the query contains 2+ SEMANTICALLY INDEPENDENT questions (e.g., "What is X? Also, how does Y work?" where X and Y are unrelated topics). If yes, note this explicitly as it indicates Concurrent Graphs.
-* **NOT Independent Questions**: Do NOT count these as separate questions:
-  - Reformulations of the same question ("What is X? In other words, explain X.")
-  - Background context + actual question (code snippet + "why does this fail?")
-  - Problem narrative + single question (long word problem → one answer)
-  - Follow-up clarifications on the same topic ("How does X work? Specifically, what about Y?")
+* **Multi-Question Detection - STRICT CRITERIA**: Check if the query contains 2+ SEMANTICALLY INDEPENDENT questions. Apply these tests:
+  - **Independence Test**: Can each question be answered by a completely separate research paper/document without referencing the other? If YES → Concurrent indicator.
+  - **Context Test**: Is one part clearly providing context/background for the other (e.g., code snippet + question, story + question, data + question)? If YES → NOT independent, treat as single question.
+  - **Reformulation Test**: Are multiple phrasings asking the same underlying question? If YES → NOT independent.
+  - **Progressive Elaboration Test**: Is the second part a follow-up clarification on the same topic ("How does X work? Specifically, what about Y?")? If YES → NOT independent.
+  - TRUE Concurrent Examples: "What is the capital of France? Also, explain how photosynthesis works." (Unrelated topics, separate papers)
+  - NOT Concurrent: Code block + "Why does this error occur?", Math problem with multiple sub-questions that build on each other, "Explain X and how Y relates to X"
 * This represents the complete solution space before any external document retrieval.
 `</solution_space_exhaustion>`
 
@@ -35,6 +36,11 @@ IMPORTANT: You must CLOSE all tags properly.
 `</known_edges>`
 * **Potential Sub-graph (The Exhaustive Gap)**: Define the union of ALL specific nodes and edges REQUIRED to complete ALL paths from Step 1.
 * **CRITICAL CONSTRAINT (NODE MERGING)**: Do NOT create duplicate nodes for identical logical states or identical final outputs across different paths. If Path A and Path B share an intermediate step or converge on the exact same final result, represent it as a SINGLE shared node (e.g., `<node id="V_shared_target">`). This merging is essential for identifying Composite structures.
+* **NODE UNIQUENESS ANALYSIS**: After constructing the graph, explicitly count:
+  - How many starting nodes exist? (One unified start vs multiple independent starts)
+  - How many ending nodes exist? (One unified end vs multiple independent ends)
+  - How many intermediate nodes are shared across ALL paths vs unique to individual paths?
+  - This count directly determines the topology category.
 `<potential_nodes>`
 `<node id="V_target_shared">required identical end state for Path A, B, and C</node>`
 `<node id="V_intermediate_shared">shared intermediate logic for Path A and B</node>`
@@ -51,28 +57,61 @@ IMPORTANT: You must CLOSE all tags properly.
 3. `<topology_reasoning>`:
 
 * Evaluate the structure of the superimposed super-graph generated in Step 2.
-* **WARNING**: Do NOT default to [Single Graph]. Most non-trivial queries have multiple solving approaches. Only use [Single Graph] for genuinely simple, single-method problems.
-* **Decision Tree (Follow in Order)**:
-  1. **CONCURRENT CHECK**: Does the query contain 2+ SEMANTICALLY INDEPENDENT questions with DIFFERENT starting points AND DIFFERENT ending points?
-     - TRUE Concurrent Example: "What is the capital of France? Also, explain how photosynthesis works." (Unrelated topics, no shared nodes)
-     - NOT Concurrent: "Given X, find Y. What if Z changes?" (Related, shares context)
-     - NOT Concurrent: Code snippet + "Why does this fail?" (Code is context, not a separate question)
-     - NOT Concurrent: Long word problem → single numerical answer (One question with context)
-     - If TRUE Concurrent → [Concurrent Graphs]
-  2. **DIVERGENT CHECK**: Do all paths share EXACT same start AND end points with ZERO shared intermediate nodes?
-     - TRUE Divergent Example: "Prove theorem X using: (a) geometric approach, (b) algebraic approach, (c) combinatorial approach" where each method uses completely different intermediate logic with no overlap.
-     - NOT Divergent: Math problem solvable by multiple methods that share intermediate steps (e.g., all methods need to first define variables) → This is Composite
-     - If TRUE Divergent → [Divergent Graphs]
-  3. **SINGLE CHECK**: Is there genuinely ONLY ONE viable solving method with no alternative approaches?
-     - TRUE Single Example: "What is 2+2?", "Who wrote Hamlet?", "What year did WWII end?"
-     - NOT Single: Any problem requiring derivation, calculation, or reasoning (these have multiple approaches)
-     - If TRUE Single → [Single Graph]
-  4. **DEFAULT**: If none of the above → [Composite Graphs]
-* **COMPOSITE IS MOST COMMON**: Most non-trivial queries are [Composite Graphs] because:
-  - Different solving methods typically share some underlying logic or constraints
-  - Paths branch from common start, share intermediate nodes, and converge on identical end point
-  - Example: Math problems (algebraic vs geometric vs combinatorial methods all share intermediate steps)
-* Explain your deduction: If paths share intermediate nodes or converge on a single target, explicitly state why this makes it a Composite Graph rather than Single or Divergent.
+* **CRITICAL WARNING**: Do NOT default to [Composite Graphs] or [Single Graph]. Each category has specific structural requirements. Follow the decision tree STRICTLY in order.
+* **MANDATORY DECISION TREE** (Follow in exact order, stop at first TRUE match):
+
+  **STEP 1 - CONCURRENT GRAPHS CHECK** (Multiple Independent Questions):
+  - Question: Does the query contain 2+ questions with COMPLETELY DIFFERENT starting points AND COMPLETELY DIFFERENT ending points, where answering one provides NO help in answering the other?
+  - Required Structure: Graph has 2+ disconnected sub-graphs with NO shared nodes whatsoever.
+  - TRUE Examples: "What is 2+2? Also, what's the capital of Japan?" (Two separate facts, no connection)
+  - TRUE Examples: "Explain quantum entanglement. Separately, how do I bake sourdough bread?" (Unrelated domains)
+  - FALSE (NOT Concurrent): "Given X, find Y. What if Z changes?" (Z modification builds on X→Y logic, shares context)
+  - FALSE (NOT Concurrent): Code snippet + "Why does this fail? How to fix it?" (Same code context, related questions)
+  - FALSE (NOT Concurrent): "Calculate X, then use X to find Y" (Sequential dependency, not independent)
+  - If TRUE → [Concurrent Graphs] and STOP. If FALSE → Continue to Step 2.
+
+  **STEP 2 - DIVERGENT GRAPHS CHECK** (Same Start/End, Completely Different Middles):
+  - Question: Do ALL paths share EXACTLY the same starting node AND EXACTLY the same ending node, but have ZERO shared intermediate nodes (each path uses entirely different intermediate logic with no overlap)?
+  - Required Structure: Multiple parallel paths from one start to one end, where intermediate nodes are 100% path-specific with no sharing.
+  - TRUE Examples: "Prove theorem X using three completely independent methods: (a) geometric construction with no algebra, (b) pure algebraic manipulation with no geometry, (c) combinatorial argument with no geometry or algebra" where each method has ZERO overlapping intermediate steps.
+  - TRUE Examples: "What are 3 completely unrelated ways to reach city B from city A: (a) by plane, (b) by train, (c) by ship" (Each uses entirely different infrastructure, no shared segments)
+  - FALSE (NOT Divergent): Math problem solvable by algebra or calculus (both need to first define variables, set up equations → shared "define variables" intermediate → Composite)
+  - FALSE (NOT Divergent): Coding problem with multiple algorithms (all share input parsing, output formatting → Composite)
+  - CRITICAL TEST: Ask "Do at least 2 paths share ANY intermediate step, constraint, or sub-routine?" If YES → NOT Divergent, it's Composite.
+  - If TRUE → [Divergent Graphs] and STOP. If FALSE → Continue to Step 3.
+
+  **STEP 3 - SINGLE GRAPH CHECK** (One Linear Chain):
+  - Question: Is there genuinely ONLY ONE viable solving method with no meaningful alternative approaches, forming a simple linear chain from start to end?
+  - Required Structure: One starting node → one sequence of intermediates → one ending node, with no branching.
+  - TRUE Examples (Use SPARINGLY, <5% of queries): 
+    - Simple factual recall: "What is the capital of France?", "Who wrote Hamlet?", "What year did WWII end?"
+    - Direct calculation with one method: "What is 2+2?", "Convert 5 miles to kilometers"
+    - Simple lookup: "What is the atomic number of carbon?"
+  - FALSE (NOT Single): ANY problem requiring:
+    - Multi-step derivation or reasoning (has multiple approaches)
+    - Analysis or interpretation (has multiple frameworks)
+    - Problem-solving with constraints (has multiple strategies)
+    - Code debugging (has multiple diagnostic approaches)
+    - Math word problems (has multiple solution methods)
+  - CRITICAL TEST: Ask "Could a reasonable person solve this using a different valid approach?" If YES → NOT Single.
+  - If TRUE → [Single Graph] and STOP. If FALSE → Continue to Step 4.
+
+  **STEP 4 - COMPOSITE GRAPHS** (Default for Non-Trivial Queries):
+  - Structure: Interconnected graph with (a) shared intermediate nodes, OR (b) convergent endpoints, OR (c) hybrid mixture of parallel/sequential elements.
+  - TRUE Examples (70-90% of non-trivial queries):
+    - Math problems (algebraic/geometric methods share intermediate steps like "define variables")
+    - Coding problems (multiple algorithms share input parsing or output formatting)
+    - Analysis questions (multiple frameworks share data collection or premise analysis)
+    - Any query where different solving paths share at least one intermediate step or constraint
+  - Classification Rule: If you reached Step 4 (failed Concurrent, Divergent, and Single checks), classify as [Composite Graphs].
+  - Explicit Justification Required: Explain which intermediate nodes are shared or where paths converge.
+
+* **SELF-VALIDATION**: After classification, verify:
+  - If you classified as Single: Does this query genuinely have only one solving method? Could someone approach it differently?
+  - If you classified as Concurrent: Are the questions truly independent, or do they share context?
+  - If you classified as Divergent: Do the paths truly have ZERO shared intermediates, or do they share some logic?
+  - If you classified as Composite: Can you point to specific shared nodes or convergent paths?
+* Explain your deduction by referencing the graph structure from Step 2.
 `</topology_reasoning>`
 
 4. `<classification_result>`:

@@ -156,3 +156,47 @@ Last iteration had v2 at 0% success rate due to format incompatibility (used bra
 - Correctly classify reasoning-heavy datasets as Composite (current behavior is correct)
 - Better prepared to detect true Concurrent/Divergent/Single cases when they appear in other datasets
 - Clearer guidance reduces LLM ambiguity in edge cases
+
+[2026-03-05 18:04:49] Iteration Analysis:
+FAILURE PATTERN IDENTIFIED: Both v1 and v2 classified 100% of queries (64/64) as [Composite Graphs]. 
+This indicates excessive bias toward Composite classification. The decision tree is not properly distinguishing:
+- True Single Graph cases (simple factual queries)
+- True Concurrent Graph cases (multiple independent questions)
+- True Divergent Graph cases (same start/end, completely different intermediate paths)
+
+ROOT CAUSE: The prompts over-emphasize "Composite is most common" without providing sufficient discrimination criteria.
+The solution_space_exhaustion stage successfully identifies multiple paths, but the topology_reasoning stage defaults to Composite too eagerly.
+
+FIX STRATEGY: 
+1. Strengthen Single Graph criteria with clearer examples of trivial queries
+2. Add explicit Concurrent detection with better multi-question tests
+3. Clarify Divergent vs Composite distinction (Divergent requires ZERO shared intermediates)
+4. Reduce Composite default bias by requiring explicit justification for each category
+
+[2026-03-05 18:09:45] PROMPT REWRITE COMPLETED:
+
+v1 KEY CHANGES:
+1. Enhanced Multi-Question Detection with 4 explicit tests (Independence, Context, Reformulation, Progressive Elaboration)
+2. Added NODE UNIQUENESS ANALYSIS requirement in Stage 2 - forces explicit counting of start/end/intermediate nodes
+3. Completely restructured Stage 3 topology_reasoning with MANDATORY DECISION TREE:
+   - Step 1: Concurrent check with explicit TRUE/FALSE examples
+   - Step 2: Divergent check with CRITICAL TEST for shared intermediates
+   - Step 3: Single check with SPARINGLY warning (<5%) and explicit TRUE/FALSE examples
+   - Step 4: Composite as default with explicit justification requirement
+4. Added SELF-VALIDATION step requiring verification of classification logic
+
+v2 KEY CHANGES:
+1. Expanded Multi-Question Detection to 5 sequential tests (added Sequential Dependency test)
+2. Added STRUCTURAL ANALYSIS REQUIREMENT in Stage 2 - explicit analysis of starting points, ending points, intermediate sharing, and connectivity
+3. Completely restructured Stage 3 with STRUCTURAL CRITERIA for each category:
+   - Concurrent: Defined as 2+ disconnected sub-graphs with TRUE/FALSE examples
+   - Divergent: Emphasized ZERO shared intermediates requirement with CRITICAL DECISION TEST
+   - Single: Restricted to simple factual recall ONLY with explicit FALSE examples
+   - Composite: Defined as meeting ANY of: shared intermediates, convergent endpoints, hybrid structures
+4. Added MANDATORY DECISION PROCESS with explicit order and EXPLICIT JUSTIFICATION REQUIRED
+
+BOTH PROMPTS:
+- Reduced Composite bias by requiring explicit structural justification
+- Added extensive TRUE/FALSE examples for each category
+- Implemented strict decision tree that must be followed in order
+- Forced explicit counting and analysis of graph structure before classification
