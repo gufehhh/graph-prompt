@@ -56,3 +56,31 @@ The <solution_space_exhaustion> and <topology_reasoning> stages lack precise gui
 - V1: Strengthen the "CONCURRENT CHECK" to require TRUE semantic independence, not just multiple question marks
 - V2: Add explicit examples of what does NOT count as Concurrent (reformulations, context, follow-ups to same topic)
 - Both: Clarify that questions about the SAME topic with logical dependency are NOT Concurrent
+
+### [2026-03-05 08:13:51] Iteration Analysis - Results from results_20260305_070825
+
+**V1 Stats**: Parse Success Rate ~100%, Predominantly [Single Graph] classifications across math (aops) and stackoverflow datasets
+**V2 Stats**: Parse Success Rate ~100%, Predominantly [Single Graph] classifications across math (aops) and stackoverflow datasets
+
+**Key Failure Pattern Identified**:
+Both prompts show strong Single Graph bias, which is CORRECT for the tested datasets (math problems and stackoverflow questions are inherently single-question queries). However, the prompts need stronger guidance for edge cases:
+
+1. **Reformulation vs Independent Questions**: Previous iteration showed v1 over-classifying reformulations as Concurrent. Current prompts need even clearer distinction.
+2. **Context/Code + Question Pattern**: Queries with code snippets + questions about the code should be Single Graph (code is context, not a separate question).
+3. **Problem Description + Question**: Extended problem descriptions followed by a single question should be Single Graph.
+
+**Root Cause**: 
+The <solution_space_exhaustion> and <topology_reasoning> stages need more explicit examples of what does NOT count as Concurrent:
+- Code/example blocks + question = Single Graph
+- Problem narrative + question = Single Graph  
+- Multiple angles on same topic = Single Graph
+
+**Planned Changes**:
+- V1: Enhanced CONCURRENT CHECK section with explicit "NOT Concurrent" examples including code+question and description+question patterns
+- V2: Enhanced CONCURRENT DETECTION STEP with same explicit non-examples, plus stronger emphasis on the "Decisive Test"
+- Both: Added clearer language that problem context/description is NOT a separate question from the actual query
+
+**Expected Improvement**:
+- Maintain ~100% parse success rate
+- Reduce false positive Concurrent classifications on queries with context/code
+- Better handling of real Concurrent cases when they appear in other datasets

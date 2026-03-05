@@ -12,19 +12,9 @@ IMPORTANT: You must CLOSE all tags.
 * Briefly define the required background knowledge and intermediate logical steps for *each* path.
 * *CRITICAL DISTINCTION*: Multiple solution methods to the SAME question do NOT indicate a complex topology. A math problem solvable by algebra OR geometry is still a single logical path — the methods are interchangeable routes to the same destination, not parallel required branches.
 * *CONCURRENT CHECK - STRICT CRITERIA*: Before proceeding, explicitly check: Does the query contain 2 or more semantically INDEPENDENT questions? Apply these tests:
-  - **TRUE Concurrent indicators** (ALL must apply for Concurrent classification):
-    - Questions cover completely UNRELATED topics or domains (e.g., "What is the capital of France? Also, explain photosynthesis.")
-    - Answering question A provides ZERO help for answering question B
-    - Each question would require separate, independent research/knowledge to answer
-    - The questions have NO logical dependency on each other
-  - **NOT Concurrent - Single Graph with Context** (these indicate Single Graph, NOT Concurrent):
-    - Multiple reformulations of the SAME question (e.g., "Why no certification? Is there a reason?" — both ask the same thing)
-    - Background context, examples, or anecdotes supporting one core question
-    - Follow-up clarifications that logically depend on the main question (e.g., "Is it X? Or is it Y?" — this is ONE classification question)
-    - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes it?" — these are the same underlying question)
-    - Problem description + specific question (the description is context, not a separate question)
-    - Code/example + question about the code (the code is context for one question)
-  - **Decisive Test**: If you removed sub-question A, would sub-question B still make complete sense AND require completely different knowledge to answer? If NO → NOT Concurrent (it's Single Graph).
+  - **TRUE Concurrent indicators**: Questions about completely UNRELATED topics (e.g., "What is the capital of France? Also, explain photosynthesis."); Questions where answering one provides ZERO help for answering the other.
+  - **NOT Concurrent (Single with Context)**: Multiple reformulations of the SAME question; Background context or examples supporting one core question; Follow-up clarifications that logically depend on the main question; Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes it?" — these are the same question).
+  - **Decisive Test**: If you removed sub-question A, would sub-question B still make sense AND require completely different knowledge to answer? If NO → NOT Concurrent.
 * This step represents the sum of all potential problem-solving routes, but remember: solution method diversity ≠ topological complexity. Question reformulation diversity ≠ Concurrent Graphs.
 </solution_space_exhaustion>
 
@@ -50,7 +40,6 @@ IMPORTANT: You must CLOSE all tags.
 * *Question Boundary Analysis*: Count the number of DISTINCT questions (look for multiple question marks, or clauses like "Also...", "Additionally...", "And what about..."). BUT critically evaluate: Are these truly independent, or are they reformulations/context for one core question?
   - **Single Core Question**: Multiple mentions of the same topic, even with different wording = 1 question
   - **True Multiple Questions**: Unrelated topics or logically independent inquiries = N questions
-  - **Key Test**: Do all question parts ultimately serve ONE unified answer, or do they require separate independent answers?
 * *Exception*: If the query is fundamentally nonsensical or lacks minimum context to anchor ANY starting node, output EXACTLY this tag and stop graph construction:
 <error>Graph construction failed due to extreme ambiguity.</error>
 </logical_supergraph_construction>
@@ -72,8 +61,6 @@ IMPORTANT: You must CLOSE all tags.
   - Background context, examples, or anecdotes supporting one core question
   - Follow-up clarifications that depend on the main question (e.g., "Is it X? Or is it Y?" — this is ONE classification question)
   - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes X?")
-  - Problem description followed by a question about that description
-  - Code snippet + question about the code
 - **Decisive test**: If you removed one sub-question, could you still fully answer the others without any loss AND would the remaining questions still make complete sense? If NO → NOT Concurrent.
 - If TRUE Concurrent → [Concurrent Graphs]. STOP here.
 

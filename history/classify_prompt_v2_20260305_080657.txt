@@ -12,19 +12,9 @@ IMPORTANT: You must CLOSE all tags.
 * Explicitly list each distinct logical path (e.g., Path A: Mathematical derivation; Path B: Empirical observation retrieval; Path C: Analogical reasoning).
 * *KEY INSIGHT*: Solution method diversity is orthogonal to topological classification. A question like "What is 2+2?" has one logical structure (Single Graph) even though you could solve it by counting, memorization, or formal proof. The topology reflects the query's logical dependencies, not your toolkit.
 * *CONCURRENT DETECTION STEP - STRICT CRITERIA*: Before listing solution methods, first identify: Does this query contain 2 or more semantically INDEPENDENT question components? Apply these tests:
-  - **TRUE Concurrent indicators** (ALL must apply for Concurrent classification):
-    - Questions about completely UNRELATED topics (e.g., "What is X? Also, how does Y work?" where X and Y share no logical connection)
-    - Questions where the knowledge required for one provides ZERO overlap with the other
-    - Each question requires completely separate, independent analysis to answer
-    - Example: "What is 2+2? Also, what is the capital of France?" → Two independent questions → Concurrent
-  - **NOT Concurrent - Single Graph** (these indicate Single Graph, NOT Concurrent):
-    - Multiple reformulations of the SAME question (e.g., "Why no X? Is there a reason?" — both ask the same thing)
-    - Background context, examples, or anecdotes supporting one core question
-    - Follow-up clarifications: "Is it A? Or is it B? Or is it C?" = ONE classification question
-    - Questions about different aspects of the SAME topic (e.g., "Why does X happen? What causes X?")
-    - Problem description + specific question about that description = ONE question
-    - Code/example + question about the code = ONE question
-  - **Decisive Test**: If you removed sub-question A, would sub-question B still make complete sense AND require completely different knowledge? If NO → NOT Concurrent (it's Single Graph).
+  - **TRUE Concurrent indicators**: Questions about completely UNRELATED topics (e.g., "What is X? Also, how does Y work?" where X and Y share no logical connection); Questions where the knowledge required for one provides ZERO overlap with the other.
+  - **NOT Concurrent (Single with Context)**: Multiple reformulations of the SAME question; Background context, examples, or anecdotes; Follow-up clarifications like "Is it A? Or is it B?" (this is ONE classification question); Questions about different aspects of the SAME topic.
+  - **Decisive Test**: If you removed sub-question A, would sub-question B still make complete sense AND require completely different knowledge? If NO → NOT Concurrent.
   - If TRUE Concurrent detected, explicitly note: "QUERY CONTAINS N INDEPENDENT QUESTIONS: [list them with confirmation they are truly unrelated]".
 * This step represents the sum of all potential problem-solving routes. Remember: question reformulation ≠ multiple questions.
 </solution_space_exhaustion>
@@ -55,7 +45,6 @@ IMPORTANT: You must CLOSE all tags.
     <question_subgraph id="Q2">...</question_subgraph>
   - If the query has ONE core question with reformulations/context: Tag as single graph with all context integrated.
   - **Key distinction**: "Why no X? Is there a reason?" = ONE question (reformulation). "What is X? Also, how does Y work?" (X≠Y) = TWO questions.
-  - **Critical test**: Do all parts of the query ultimately contribute to ONE unified answer, or do they require separate independent answers?
 * *Exception*: If the query is too vague, generic, or lacks sufficient context to define the knowns and logical gaps, output EXACTLY this tag and stop graph construction:
 <error>Graph construction failed due to ambiguity.</error>
 </logical_supergraph_construction>
@@ -70,14 +59,12 @@ IMPORTANT: You must CLOSE all tags.
       - Questions cover completely UNRELATED topics/domains
       - Zero knowledge overlap between sub-questions
       - Each requires independent research/analysis
-      - Example: "What is 2+2? Also, what is the capital of France?" → Two independent questions → Concurrent
+      - Example: "What is 2+2? Also, what is the capital of France?" → Two independent questions → Concurrent.
     - **NOT Concurrent** (these indicate Single Graph):
       - Multiple reformulations of the same question (e.g., "Why no certification? What's the reason?")
       - Background context, examples, or supporting details
       - Follow-up clarifications: "Is it A? Or B? Or C?" = ONE classification question
       - Questions about different aspects of SAME topic (e.g., "Why does X happen? What causes X?")
-      - Problem description followed by question about that description
-      - Code snippet + question about the code
     - **Critical check**: If you removed sub-question A, could you still fully answer sub-question B without any loss AND would B still make complete sense? If NO → NOT Concurrent.
     - If TRUE Concurrent → [Concurrent Graphs]. STOP here.
 

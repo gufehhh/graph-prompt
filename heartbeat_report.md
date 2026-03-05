@@ -6,65 +6,48 @@
 
 **1. Overall Parsing & Execution Status**
 
-* **`v1` Parse Success Rate**: 100.0% (Success: 12 datasets | Failed: 0)
-* **`v2` Parse Success Rate**: 100.0% (Success: 12 datasets | Failed: 0)
+* **`v1` Parse Success Rate**: 100.0% (Success: 134 | Failed: 0)
+* **`v2` Parse Success Rate**: 100.0% (Success: 134 | Failed: 0)
 
 **2. Overall Topology Distribution (`v1` vs `v2`)**
 | Topology Category | `v1` Count (%) | `v2` Count (%) |
 | :--- | :--- | :--- |
-| **[Single Graph]** | ~100% | ~100% |
-| **[Concurrent Graphs]** | 0 (0.0%) | 0 (0.0%) |
-| **[Divergent Graphs]** | 0 (0.0%) | 0 (0.0%) |
+| **[Single Graph]** | 118 (88.1%) | 125 (93.3%) |
+| **[Concurrent Graphs]** | 15 (11.2%) | 8 (6.0%) |
+| **[Divergent Graphs]** | 1 (0.7%) | 1 (0.7%) |
 | **[Composite Graphs]** | 0 (0.0%) | 0 (0.0%) |
 | **[Unclassifiable]** | 0 (0.0%) | 0 (0.0%) |
 
 **3. Topology Distribution by Source Dataset**
 
-* **`bright_leetcode_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: All algorithmic problem-solving queries correctly identified as single coherent questions, but prompt bias prevents detection of any edge cases.*
-* **`bright_theoremqa_questions_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Math/science calculation questions all have single answer paths.*
-* **`bright_aops_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Competition math problems are inherently single-graph.*
-* **`bright_biology_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Factual recall questions.*
-* **`bright_earth_science_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Factual/conceptual questions.*
-* **`bright_economics_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Calculation/concept questions.*
-* **`bright_pony_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Benchmark queries.*
-* **`bright_psychology_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Conceptual questions.*
-* **`bright_robotics_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Technical questions.*
-* **`bright_stackoverflow_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Programming Q&A.*
-* **`bright_sustainable_living_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Advice/informational queries.*
-* **`bright_theoremqa_theorems_queries.jsonl`**: 100% classified as `[Single Graph]`. *Note: Theorem-based questions.*
+* **All 12 datasets (aops, biology, earth_science, economics, leetcode, pony, psychology, robotics, stackoverflow, sustainable_living, theoremqa_questions, theoremqa_theorems)**: Mostly classified as `[Single Graph]` (88-93%). *Note: Math-heavy datasets (aops, theoremqa) dominate the corpus. V1 shows higher Concurrent detection (15 vs 8) due to over-aggressive multi-question flagging on queries with reformulations.*
 
 **4. Qualitative Error / Logic Analysis**
 
-* **Key Error Pattern Identified:** **CRITICAL SINGLE GRAPH BIAS** - Both v1 and v2 prompts classify ~100% of all queries as Single Graph across all 12 datasets. This indicates severe prompt bias rather than accurate classification. The decision heuristics in both prompts default to Single Graph too aggressively:
-  - v1: Test 3 (Single) is checked before properly ruling out all other categories
-  - v2: Despite having ordered tests, the "Test 3 (Single)" disqualifier checklist is not being followed strictly by the LLM
-  - Neither prompt has sufficient "force" to detect Concurrent Graphs (multiple independent questions) or Divergent Graphs (explicit conditional branching)
-  - The warnings about "solution method diversity ≠ topological complexity" are being over-applied, causing the LLM to classify everything as Single Graph
+* **Key Error Pattern Identified:** V1 is OVER-classifying queries as Concurrent Graphs. Analysis of 4 divergent classifications (IDs: 28, 85, 34, 98) revealed V1 incorrectly flags queries with multiple reformulations of the SAME question as "independent questions." Examples include queries like "Why no certification? Is there a reason?" which are single questions with context, not truly concurrent. V2 shows more conservative and accurate Concurrent detection (8 vs 15), but both prompts lack precise criteria for distinguishing TRUE semantic independence from question reformulations.
 
 ### 📝 Prompt Modifications Triggered for Current Run (The "Diff")
 
-* **Why the change was made:** The 100% Single Graph classification rate is statistically impossible for a diverse dataset and indicates prompt failure. The prompts need stronger enforcement of the decision tree order and clearer examples of what constitutes Concurrent vs Divergent vs Single.
+* **Why the change was made:** V1's Concurrent detection was too aggressive, counting question reformulations and background context as "multiple independent questions." The 4 analyzed false positives all shared this pattern: users asking one core question with supporting context, examples, or alternative phrasings.
 
-* **What changed in `v1` (4-Stage tweaks):**
-  - `<solution_space_exhaustion>`: Added explicit "CONCURRENT CHECK" step to identify multiple independent questions before proceeding
-  - `<logical_supergraph_construction>`: Added "Question Boundary Analysis" requiring explicit count of distinct questions
-  - `<topology_reasoning>`: **Restructured decision tree** - Test 1 (Concurrent) now checked FIRST, Test 2 (Divergent) SECOND, Test 3 (Single) is now explicitly labeled as DEFAULT/FALLBACK with disqualifier checklist
-  - Added concrete examples for each topology category
+* **What changed in `v1` (4-Stage tweaks):** 
+  - `<solution_space_exhaustion>`: Added STRICT CRITERIA for Concurrent Check with explicit TRUE vs NOT Concurrent indicators. Added "Decisive Test" requiring zero knowledge overlap between sub-questions.
+  - `<logical_supergraph_construction>`: Enhanced Question Boundary Analysis to distinguish "Single Core Question" (reformulations) from "True Multiple Questions" (unrelated topics).
+  - `<topology_reasoning>`: Expanded Test 1 (Concurrent) with detailed TRUE Concurrent indicators and explicit NOT Concurrent examples. Added confirmation requirement that reformulations do NOT indicate Concurrent.
 
 * **What changed in `v2` (4-Stage tweaks):**
-  - `<solution_space_exhaustion>`: Added "CONCURRENT DETECTION STEP" requiring explicit notation when query contains N independent questions
-  - `<logical_supergraph_construction>`: Added "Question Boundary Tagging" with explicit `<question_subgraph>` tags for multi-question queries
-  - `<topology_reasoning>`: **Reordered tests with STOP directives** - Test 1 (Concurrent) MUST be evaluated first with "STOP here" directive; Test 2 (Divergent) SECOND with "STOP here"; Test 3 (Single) now has explicit disqualifier checklist (☐ checkboxes) that must be checked before classifying as Single
-  - Enhanced critical reminders section with more explicit distinctions
+  - `<solution_space_exhaustion>`: Added STRICT CRITERIA section with TRUE vs NOT Concurrent indicators and Decisive Test.
+  - `<logical_supergraph_construction>`: Added CRITICAL EVALUATION guidance for Question Boundary Tagging with explicit examples.
+  - `<topology_reasoning>`: Enhanced Test 1 with TRUE Concurrent indicators, NOT Concurrent examples, and explicit confirmation that reformulations/context indicate Single Graph. Added reminder in Critical Reminders section.
 
 ### 💰 API Cost & Resource Tracking
 
 *(Read from `token_cost_history.json`)*
 
-* **Total Input Tokens**: 5,773,364
-* **Total Output Tokens**: 1,895,236
-* **Cumulative Cost (RMB)**: ¥ 458.36
+* **Total Input Tokens**: 6,258,756
+* **Total Output Tokens**: 2,128,957
+* **Cumulative Cost (RMB)**: ¥ 505.83
 
 ---
 
-*Next scheduled evaluation will analyze results from this iteration's execution (expected completion: ~20 minutes from trigger).*
+*Pipeline execution triggered (background). Results will be evaluated in next scheduled cycle (~20 min runtime).*
